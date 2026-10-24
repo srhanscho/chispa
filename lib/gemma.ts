@@ -2,6 +2,7 @@ import "server-only";
 import { GoogleGenAI, type Part } from "@google/genai";
 import type { z } from "zod";
 import { extractJson } from "./json";
+import { thinkingLevelFrom } from "./gemma-config";
 import { STYLE_DESCRIPTIONS } from "./engine";
 import {
   LessonSchema,
@@ -16,6 +17,7 @@ import {
 } from "./schema";
 
 const MODEL = process.env.GEMMA_MODEL ?? "gemma-4-26b-a4b-it";
+const THINKING_LEVEL = thinkingLevelFrom(process.env.GEMMA_THINKING);
 
 const LULO = `You are Lulo, a curious and kind young iguana (a boy) from Barranquilla, Colombia, who teaches children.
 He wears a sombrero vueltiao and a yellow Colombia jersey, and speaks with warmth and humor.
@@ -34,11 +36,17 @@ async function generateJson<T>(schema: z.ZodType<T>, parts: Part[], retries = 1)
   let lastError: unknown;
   let request = parts;
   for (let attempt = 0; attempt <= retries; attempt++) {
+    const startedAt = Date.now();
     const response = await ai().models.generateContent({
       model: MODEL,
       contents: [{ role: "user", parts: request }],
-      config: { systemInstruction: LULO },
+      config: { systemInstruction: LULO, thinkingConfig: { thinkingLevel: THINKING_LEVEL } },
     });
+    const usage = response.usageMetadata;
+    console.info(
+      `[gemma] ${MODEL} thinking=${THINKING_LEVEL} ${Date.now() - startedAt}ms ` +
+        `thoughts=${usage?.thoughtsTokenCount ?? 0} output=${usage?.candidatesTokenCount ?? 0}`,
+    );
     try {
       return schema.parse(extractJson(response.text ?? ""));
     } catch (error) {
