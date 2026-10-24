@@ -1,0 +1,83 @@
+{
+  "topic": "Los volcanes",
+  "style": "game",
+  "level": "explorer",
+  "cover": {
+    "kind": "illustration",
+    "query": "cute iguana wearing a sombrero vueltiao and a yellow jersey looking at a friendly volcano"
+  },
+  "cards": [
+    {
+      "title": "La montaña mágica",
+      "text": "¿Sabes qué es una montaña muy especial? Es un volcán. Parece una montaña, pero tiene un secreto bajo tierra.",
+      "speech": "¡Hola, amiguito! ¿Sabes qué es una montaña muy especial? ¡Es un volcán! Es como una montaña con un secreto bajo tierra.",
+      "image": {
+        "kind": "photo",
+        "query": "volcano mountain"
+      }
+    },
+    {
+      "title": "El fuego caliente",
+      "text": "¿Qué crees que sale de arriba? Sale lava muy caliente. La lava es roca derretida que brilla mucho.",
+      "speech": "¿Qué crees que sale de arriba? ¡Sale lava muy caliente! Es como roca derretida que brilla como el sol.",
+      "image": {
+        "kind": "photo",
+        "query": "lava flowing"
+      }
+    },
+    {
+      "title": "¡Pum! La explosión",
+      "text": "¿Cómo hace un volcán cuando despierta? Hace ¡PUM! Sale humo y ceniza hacia el cielo.",
+      "speech": "¿Cómo hace un volcán cuando despierta? ¡Hace PUM! Sale mucho humo y ceniza al cielo. ¡Qué chévere!",
+      "image": {
+        "kind": "illustration",
+        "query": "cartoon volcano erupting with smoke"
+      }
+    },
+    {
+      "title": "Tierra nueva",
+      "text": "¿Sabías que los volcanes ayudan? La lava se enfría y crea tierra nueva. ¡Es un regalo de la naturaleza!",
+      "speech": "¿Sabías que los volcanes ayudan? Cuando la lava se enfría, crea tierra nueva. ¡Es un gran regalo de la naturaleza!",
+      "image": {
+        "kind": "photo",
+        "query": "volcanic rock landscape"
+      }
+    }
+  ],
+  "quiz": [
+    {
+      "question": "¿Qué es un volcán?",
+      "options": [
+        "Una montaña con un secreto",
+        "Un árbol gigante",
+        "Un río de agua fría"
+      ],
+      "answerIndex": 0,
+      "hint": "Piensa en la primera tarjeta."
+    },
+    {
+      "question": "¿Cómo se llama la roca derretida?",
+      "options": [
+        "Agua dulce",
+        "Lava",
+        "Helado"
+      ],
+      "answerIndex": 1,
+      "hint": "Es algo muy, muy caliente."
+    },
+    {
+      "question": "¿Qué sale del volcán cuando hace ¡PUM!?",
+      "options": [
+        "Confeti",
+        "Nieve",
+        "Humo y ceniza"
+      ],
+      "answerIndex": 2,
+      "hint": "Mira la tarjeta de la explosión."
+    }
+  ],
+  "sticker": {
+    "name": "Explorador de volcanes",
+    "query": "cute little explorer sticker"
+  }
+}

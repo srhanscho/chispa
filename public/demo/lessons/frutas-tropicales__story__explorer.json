@@ -1,0 +1,92 @@
+{
+  "topic": "frutas tropicales",
+  "style": "story",
+  "level": "explorer",
+  "cover": {
+    "kind": "illustration",
+    "query": "cute iguana wearing a sombrero vueltiao and a yellow jersey in a jungle with fruits"
+  },
+  "cards": [
+    {
+      "title": "La aventura comienza",
+      "text": "¡Hola! Soy Lulo. Vamos a buscar frutas mágicas en la selva.",
+      "speech": "¡Hola! Soy Lulo. Vamos a buscar frutas mágicas en la selva. ¡Qué chévere!",
+      "image": {
+        "kind": "illustration",
+        "query": "happy iguana explorer in tropical jungle"
+      }
+    },
+    {
+      "title": "El Mango Dulce",
+      "text": "Mira este mango naranja. Es muy dulce y jugoso.",
+      "speech": "Mira este mango naranja. Es muy dulce y jugoso.",
+      "image": {
+        "kind": "photo",
+        "query": "ripe mango fruit"
+      }
+    },
+    {
+      "title": "La Piña con Corona",
+      "text": "¡Encontramos la piña! Tiene una corona verde y es ácida.",
+      "speech": "¡Encontramos la piña! Tiene una corona verde y es ácida.",
+      "image": {
+        "kind": "photo",
+        "query": "pineapple fruit"
+      }
+    },
+    {
+      "title": "El Coco Fresco",
+      "text": "El coco es duro por fuera. Tiene agua rica por dentro.",
+      "speech": "El coco es duro por fuera. Tiene agua rica por dentro.",
+      "image": {
+        "kind": "photo",
+        "query": "coconut fruit"
+      }
+    },
+    {
+      "title": "¡Misión cumplida!",
+      "text": "¡Lo lograste, explorador! Comamos estas frutas deliciosas.",
+      "speech": "¡Lo lograste, explorador! Comamos estas frutas deliciosas.",
+      "image": {
+        "kind": "illustration",
+        "query": "iguana celebrating with fruit basket"
+      }
+    }
+  ],
+  "quiz": [
+    {
+      "question": "¿Qué fruta es naranja y dulce?",
+      "options": [
+        "El coco",
+        "El mango",
+        "La piña"
+      ],
+      "answerIndex": 1,
+      "hint": "Lulo la encontró y es muy jugosa."
+    },
+    {
+      "question": "¿Qué fruta tiene una corona verde?",
+      "options": [
+        "La piña",
+        "El mango",
+        "El coco"
+      ],
+      "answerIndex": 0,
+      "hint": "Es un poco ácida."
+    },
+    {
+      "question": "¿Qué tiene agua rica por dentro?",
+      "options": [
+        "El mango",
+        "La piña",
+        "El coco"
+      ],
+      "answerIndex": 2,
+      "hint": "Es duro por fuera."
+    }
+  ],
+  "sticker": {
+    "name": "Explorador de frutas",
+    "query": "cute smiling iguana sticker"
+  }
+}

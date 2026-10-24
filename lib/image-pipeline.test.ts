@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { resolveImageWith, FALLBACK_IMAGE } from "./image-pipeline";
+import { resolveImageWith, FALLBACK_IMAGE, MASCOT_IMAGE } from "./image-pipeline";
 import type { ImageResult } from "./commons";
 
 const photo = (url: string): ImageResult => ({ url, source: "wikimedia" });
@@ -29,13 +29,23 @@ describe("resolveImageWith", () => {
 
   it("for illustrations without OpenAI, falls back to a Wikimedia photo (bitmaps only, no scanned PDFs)", async () => {
     const commons = vi.fn(async (q: string, opts?: { bitmapOnly?: boolean }) =>
-      q === "iguana volcano" && opts?.bitmapOnly === true ? photo("iguana.jpg") : null,
+      q === "dolphin boat" && opts?.bitmapOnly === true ? photo("dolphin.jpg") : null,
     );
     const result = await resolveImageWith(
-      { kind: "illustration", query: "friendly iguana next to a volcano" },
+      { kind: "illustration", query: "friendly dolphin next to a boat" },
       { commons, illustrate: async () => null },
     );
-    expect(result.url).toBe("iguana.jpg");
+    expect(result.url).toBe("dolphin.jpg");
+  });
+
+  it("uses Lulo's artwork for illustrations of the mascot instead of searching the web", async () => {
+    const commons = vi.fn(async () => photo("random-man-with-iguana.jpg"));
+    const result = await resolveImageWith(
+      { kind: "illustration", query: "cute iguana wearing a sombrero vueltiao" },
+      { commons, illustrate: async () => null },
+    );
+    expect(result).toEqual(MASCOT_IMAGE);
+    expect(commons).not.toHaveBeenCalled();
   });
 
   it("returns Lulo's fallback when every source fails, even if a source throws", async () => {

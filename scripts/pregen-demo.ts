@@ -39,7 +39,7 @@ async function saveImage(req: ImageRequest, manifest: Record<string, Saved>) {
   const key = `${req.kind}:${req.query.toLowerCase().trim()}`;
   if (manifest[key]) return;
   const image = await post<{ url: string; source: string; credit?: string; pageUrl?: string }>("/api/image", req);
-  if (image.source === "fallback") return console.warn(`  no image for "${req.query}"`);
+  if (image.source === "fallback" || image.source === "mascot") return console.warn(`  ${image.source} for "${req.query}"`);
 
   const name = createHash("sha1").update(key).digest("hex").slice(0, 16);
   let bytes: Buffer;

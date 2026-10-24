@@ -1,6 +1,6 @@
 export interface ImageResult {
   url: string;
-  source: "wikimedia" | "openai" | "fallback";
+  source: "wikimedia" | "openai" | "mascot" | "fallback";
   credit?: string;
   pageUrl?: string;
 }

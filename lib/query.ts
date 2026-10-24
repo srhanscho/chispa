@@ -6,16 +6,29 @@ const FILLER = new Set([
   "cute", "friendly", "smiling", "happy", "big", "small", "little", "looking", "colorful",
 ]);
 
-export function searchQueries(query: string, maxKeywords = 3): string[] {
-  const keywords = query
+export interface QueryOptions {
+  maxKeywords?: number;
+  // The original prompt as a first attempt. Off for illustrations: words like "cartoon" match old satire prints.
+  includeOriginal?: boolean;
+  // Single generic words ("explorer") match unrelated things, so illustrations need at least two.
+  minKeywords?: number;
+}
+
+export const keywordsOf = (query: string) =>
+  query
     .toLowerCase()
     .replace(/[^\p{L}\p{N}\s-]/gu, " ")
     .split(/\s+/)
-    .filter((word) => word && !FILLER.has(word))
-    .slice(0, maxKeywords);
+    .filter((word) => word && !FILLER.has(word));
 
-  const attempts = [query.trim()];
-  for (let n = keywords.length; n >= 1; n--) attempts.push(keywords.slice(0, n).join(" "));
+export function searchQueries(
+  query: string,
+  { maxKeywords = 3, includeOriginal = true, minKeywords = 1 }: QueryOptions = {},
+): string[] {
+  const keywords = keywordsOf(query).slice(0, maxKeywords);
+
+  const attempts = includeOriginal ? [query.trim()] : [];
+  for (let n = keywords.length; n >= minKeywords; n--) attempts.push(keywords.slice(0, n).join(" "));
 
   const seen = new Set<string>();
   return attempts.filter((attempt) => {

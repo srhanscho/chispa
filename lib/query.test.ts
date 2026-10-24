@@ -19,6 +19,14 @@ describe("searchQueries", () => {
     expect(searchQueries("dolphin")).toEqual(["dolphin"]);
   });
 
+  it("for illustrations, can skip the descriptive original and require at least two keywords", () => {
+    expect(searchQueries("cartoon volcano erupting with smoke", { includeOriginal: false, minKeywords: 2 })).toEqual([
+      "volcano erupting smoke",
+      "volcano erupting",
+    ]);
+    expect(searchQueries("cute little explorer sticker", { includeOriginal: false, minKeywords: 2 })).toEqual([]);
+  });
+
   it("ignores punctuation and casing", () => {
     expect(searchQueries("A cute, friendly T-Rex!")).toEqual(["A cute, friendly T-Rex!", "t-rex"]);
   });
