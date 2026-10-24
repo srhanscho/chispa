@@ -25,7 +25,7 @@ describe("Lulo integration", () => {
   it("provides the full canonical demo and alternative help without calling APIs", async () => {
     vi.useFakeTimers();
     const fetch = vi.fn(); vi.stubGlobal("fetch", fetch);
-    const pending = mockLessonService.getLesson({ topic: "Planetas", age: 8, style: "story", level: "explorer" });
+    const pending = mockLessonService.getLesson({ topic: "Dinosaurios", age: 8, style: "story", level: "explorer" });
     await vi.runAllTimersAsync();
     const lesson = await pending;
     expect(lesson.topic).toBe("Dinosaurios");

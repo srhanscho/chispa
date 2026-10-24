@@ -6,15 +6,17 @@ Built for Hacktoberfest Barranquilla 2026. The backend supports **Gemma 4** thro
 
 ## Frontend de Lulo
 
-La imagen oficial del ZIP está en `public/assets/lulo/`. El recorrido demo usa cinco tarjetas de Dinosaurios, tres preguntas, lectura opcional, ayuda con ejemplos alternativos, estrellas y álbum. Planetas y Animales aparecen como próximos contenidos. El tema escrito abre Dinosaurios y la interfaz lo indica.
+La imagen oficial del ZIP está en `public/assets/lulo/`. La rama `front2` incorpora tres aventuras completas: Dinosaurios, Planetas y El océano. Cada una tiene 4–5 descubrimientos, tres preguntas, lectura opcional, ayudas, estrellas y álbum visual. Las respuestas se seleccionan y se confirman con Comprobar; los temas desconocidos muestran una explicación sin abrir otro contenido.
+
+La investigación y las decisiones de diseño están en [UX/UI de front2](docs/UX_UI_FRONT2.md), con fuentes de NN/g, W3C y CAST, nuevas ideas priorizadas y una propuesta de validación con usuarios. Incluye controles de texto grande y movimiento, saludo interactivo de Lulo y una misión opcional fuera de pantalla al terminar.
 
 `lib/lesson-service.ts` separa el mock del adaptador HTTP. Para utilizar las rutas existentes, establece `NEXT_PUBLIC_LESSON_SOURCE=http` antes de compilar y configura las variables privadas de `.env.example`. El modo demo no activa el motor adaptativo; el panel adulto muestra únicamente contadores, sin diagnósticos. Los cambios recientes de configuración y rendimiento de Gemma se conservan.
 
 Los JSON originales se guardan en `docs/lulo/especificaciones/`. `lib/lulo.ts` usa su mapa de eventos para cambiar entre inicio, carga, clase, trivia, apoyo y premio. `LuloAvatar` muestra el PNG original con movimientos CSS suaves y respeta `prefers-reduced-motion`. La voz actualiza un indicador al empezar, terminar, fallar o cancelarse. No hay sincronización labial, seis poses nuevas ni un archivo `.riv`: esas piezas siguen pendientes del diseño y rig de Rive.
 
-Solo se guardan contadores y nombres de stickers en `localStorage` (`chispa:lulo-progress:v1`). Si el navegador bloquea el almacenamiento, la sesión funciona en memoria. No se solicitan nombres ni fotos. El dictado opcional depende del servicio de reconocimiento del navegador; escribir el tema siempre está disponible.
+Se guardan contadores y stickers (`chispa:lulo-progress:v1`), preferencias (`chispa:preferences:v1`) y la aventura pausada (`chispa:journey:v1`) en `localStorage`. Pausar y guardar permite continuar incluso después de recargar, conservando las respuestas ya evaluadas. Los datos se validan al recuperarlos. Si el navegador bloquea el almacenamiento, la sesión funciona en memoria. No se solicitan nombres ni fotos. El dictado opcional depende del servicio del navegador; escribir siempre está disponible.
 
-Para probar: `npm ci`, `npm run dev`, `npm run lint`, `npm test`, `npm run build`. No hacen falta claves para la demo. Las fuentes Baloo 2 y Nunito necesitan conexión durante la compilación inicial. Los visuales educativos y el sticker son placeholders locales; Lulo utiliza la imagen oficial con su fondo claro original.
+Para probar: `npm ci`, `npm run dev`, `npm run lint`, `npm test`, `npm run build`. No hacen falta claves para la demo. Las fuentes Baloo 2 y Nunito necesitan conexión durante la compilación inicial. Los visuales educativos son SVG locales y decorativos, sin descargas de imágenes ni dependencia de proveedores. Lulo conserva su imagen oficial.
 
 Si el equipo corporativo bloquea terminales, usa un entorno autorizado o importa el repositorio desde la interfaz web de Vercel, seleccionando Next.js y sus valores predeterminados. La demo no requiere variables de entorno. Primero hay que subir a GitHub los cambios locales para que Vercel los reciba.
 

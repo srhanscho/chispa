@@ -1,171 +1,971 @@
 "use client";
 
 import { useEffect, useReducer, useRef, useState } from "react";
-import { canListen, listen, speak, stopSpeaking } from "@/lib/speech";
-import { initialLuloState, luloReducer } from "@/lib/lulo";
+import { adventures, findAdventure } from "@/lib/adventures";
+import {
+  awardProgress,
+  clearJourney,
+  defaultPreferences,
+  emptyProgress,
+  JOURNEY_KEY,
+  JourneySchema,
+  PREFERENCES_KEY,
+  PreferencesSchema,
+  PROGRESS_KEY,
+  ProgressSchema,
+  readStored,
+  storeLocal,
+  type Journey,
+  type Preferences,
+  type Progress,
+} from "@/lib/journey";
 import { getCardSupport, isDemo, lessonService } from "@/lib/lesson-service";
-import type { Lesson } from "@/lib/schema";
+import { initialLuloState, luloReducer } from "@/lib/lulo";
+import { canListen, listen, speak, stopSpeaking } from "@/lib/speech";
+import { AdventureArt, Icon } from "./AdventureArt";
+import { LearningCard } from "./LearningCard";
 import { LuloAvatar } from "./LuloAvatar";
-import { Button } from "./ui";
 
 type Stage = "start" | "loading" | "lesson" | "quiz" | "done" | "error";
-type Progress = { stars: number; sessions: number; correct: number; questions: number; help: number; stickers: string[] };
-const EMPTY: Progress = { stars: 0, sessions: 0, correct: 0, questions: 0, help: 0, stickers: [] };
-const STORAGE_KEY = "chispa:lulo-progress:v1";
-
-function loadProgress(): Progress {
-  try {
-    const value = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "null");
-    if (value && ["stars", "sessions", "correct", "questions", "help"].every((key) => Number.isSafeInteger(value[key]) && value[key] >= 0)
-      && Array.isArray(value.stickers) && value.stickers.every((s: unknown) => typeof s === "string")) return value;
-  } catch { /* Demo works when storage is blocked. */ }
-  return EMPTY;
-}
+const greetings = [
+  "¡Hola! ¿Listo para un gran descubrimiento?",
+  "Las buenas aventuras empiezan con una pregunta.",
+  "Vamos a tu ritmo. ¡Yo te acompaño!",
+];
 
 export default function ChispaApp() {
   const [stage, setStage] = useState<Stage>("start");
+  const [journey, setJourneyState] = useState<Journey | null>(null);
+  const [resume, setResume] = useState<Journey | null>(null);
+  const [progress, setProgress] = useState<Progress>(emptyProgress);
+  const [preferences, setPreferences] =
+    useState<Preferences>(defaultPreferences);
   const [topic, setTopic] = useState("");
-  const [lesson, setLesson] = useState<Lesson | null>(null);
-  const [step, setStep] = useState(0);
-  const [feedback, setFeedback] = useState("");
-  const [selected, setSelected] = useState<number | null>(null);
-  const [answering, setAnswering] = useState(false);
-  const [correct, setCorrect] = useState(0);
-  const [help, setHelp] = useState(0);
-  const [progress, setProgress] = useState<Progress>(EMPTY);
+  const [requestedTopic, setRequestedTopic] = useState("");
+  const [homeMessage, setHomeMessage] = useState("");
+  const [greeting, setGreeting] = useState(0);
   const [adultOpen, setAdultOpen] = useState(false);
   const [albumOpen, setAlbumOpen] = useState(false);
   const [micAvailable, setMicAvailable] = useState(false);
   const [voiceAvailable, setVoiceAvailable] = useState(false);
   const [listening, setListening] = useState(false);
+  const [busy, setBusy] = useState(false);
   const [lulo, dispatch] = useReducer(luloReducer, initialLuloState);
   const heading = useRef<HTMLHeadingElement>(null);
+  const topicInput = useRef<HTMLInputElement>(null);
+  const adultPanel = useRef<HTMLElement>(null);
+  const albumPanel = useRef<HTMLElement>(null);
+  const adultToggle = useRef<HTMLButtonElement>(null);
+  const albumToggle = useRef<HTMLButtonElement>(null);
   const answerLock = useRef(false);
+  const journeyRef = useRef<Journey | null>(null);
   const requestLock = useRef(false);
+  const rewarded = useRef(false);
   const stopListening = useRef<(() => void) | undefined>(undefined);
+  const active = stage === "lesson" || stage === "quiz";
 
   useEffect(() => {
-    // Read browser capabilities and local counters after hydration.
+    // Read browser capabilities and local demo data only after hydration.
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setProgress(loadProgress());
+    setProgress(readStored(PROGRESS_KEY, ProgressSchema, emptyProgress));
+    setPreferences(
+      readStored(PREFERENCES_KEY, PreferencesSchema, defaultPreferences),
+    );
+    setResume(readStored(JOURNEY_KEY, JourneySchema.nullable(), null));
     setMicAvailable(canListen());
     setVoiceAvailable("speechSynthesis" in window);
-    dispatch("APP_READY");
-    return () => { stopSpeaking(); stopListening.current?.(); };
+    return () => {
+      stopSpeaking();
+      stopListening.current?.();
+    };
   }, []);
 
-  useEffect(() => { heading.current?.focus(); }, [stage, step]);
+  useEffect(() => {
+    heading.current?.focus();
+  }, [stage, journey?.step]);
+  useEffect(() => {
+    if (adultOpen) adultPanel.current?.focus();
+  }, [adultOpen]);
+  useEffect(() => {
+    if (albumOpen) albumPanel.current?.focus();
+  }, [albumOpen]);
+
+  // Save at the action boundary so a quick pause/reload cannot persist an older render.
+  function setJourney(next: Journey) {
+    journeyRef.current = next;
+    setJourneyState(next);
+    storeLocal(JOURNEY_KEY, next);
+  }
 
   function read(text: string) {
-    speak(text, (speaking) => dispatch(speaking ? "SPEECH_STARTED" : "SPEECH_ENDED"));
+    speak(text, (speaking) =>
+      dispatch(speaking ? "SPEECH_STARTED" : "SPEECH_ENDED"),
+    );
+  }
+
+  function changePreferences(next: Preferences) {
+    setPreferences(next);
+    storeLocal(PREFERENCES_KEY, next);
   }
 
   async function startLesson(requested: string) {
-    if (requestLock.current || requested.trim().length < 2 || requested.trim().length > 100) return;
+    if (requestLock.current) return;
+    const trimmed = requested.trim();
+    if (trimmed.length < 2 || trimmed.length > 100) {
+      setHomeMessage("Escribe una idea de entre 2 y 100 letras.");
+      topicInput.current?.focus();
+      return;
+    }
+    if (isDemo && !findAdventure(trimmed)) {
+      setHomeMessage(
+        "Esa aventura aún no está en el cuaderno. Por ahora puedes elegir Dinosaurios, Planetas o El océano.",
+      );
+      topicInput.current?.focus();
+      return;
+    }
     requestLock.current = true;
-    stopSpeaking(); stopListening.current?.(); setListening(false);
-    setStage("loading"); dispatch("LESSON_REQUESTED");
-    setFeedback(""); setCorrect(0); setHelp(0); setStep(0); setSelected(null);
-    answerLock.current = false;
+    stopSpeaking();
+    stopListening.current?.();
+    setListening(false);
+    setRequestedTopic(trimmed);
+    setStage("loading");
+    setHomeMessage("");
+    setAlbumOpen(false);
+    setAdultOpen(false);
+    dispatch("LESSON_REQUESTED");
     try {
-      const next = await lessonService.getLesson({ topic: requested.trim(), age: 8, style: "story", level: "explorer" });
-      setLesson(next); setStage("lesson"); dispatch("LESSON_CARD_SHOWN");
-    } catch { setStage("error"); dispatch("CHILD_NEEDS_HELP"); }
-    finally { requestLock.current = false; }
+      const lesson = await lessonService.getLesson({
+        topic: trimmed,
+        age: 8,
+        style: "story",
+        level: "explorer",
+      });
+      const next: Journey = {
+        stage: "lesson",
+        lesson,
+        step: 0,
+        choice: null,
+        submitted: false,
+        correct: 0,
+        help: 0,
+        feedback: "",
+      };
+      setJourney(next);
+      setResume(null);
+      setStage("lesson");
+      answerLock.current = false;
+      rewarded.current = false;
+      dispatch("LESSON_CARD_SHOWN");
+    } catch {
+      setStage("error");
+      dispatch("CHILD_NEEDS_HELP");
+    } finally {
+      requestLock.current = false;
+    }
   }
 
-  function onMic() {
-    stopSpeaking(); setListening(true);
-    stopListening.current = listen((text) => setTopic(text.slice(0, 100)), () => setListening(false));
+  function pause() {
+    const journey = journeyRef.current;
+    if (busy) return;
+    stopSpeaking();
+    stopListening.current?.();
+    setListening(false);
+    if (active && journey) {
+      setResume(journey);
+      storeLocal(JOURNEY_KEY, journey);
+    }
+    setStage("start");
+    setHomeMessage("");
+    dispatch("APP_READY");
   }
 
-  function showCard(index: number) {
-    stopSpeaking(); setFeedback(""); setStep(index); dispatch("LESSON_CARD_SHOWN");
+  function resumeJourney() {
+    if (!resume) return;
+    stopSpeaking();
+    setJourney(resume);
+    setStage(resume.stage);
+    answerLock.current = resume.submitted;
+    rewarded.current = false;
+    dispatch(
+      resume.stage === "lesson"
+        ? "LESSON_CARD_SHOWN"
+        : resume.submitted
+          ? "CHILD_NEEDS_HELP"
+          : "QUIZ_STARTED",
+    );
+  }
+
+  function showCard(step: number) {
+    const journey = journeyRef.current;
+    if (!journey) return;
+    stopSpeaking();
+    setJourney({ ...journey, step, feedback: "" });
+    dispatch("LESSON_CARD_SHOWN");
   }
 
   function startQuiz() {
-    stopSpeaking(); setFeedback(""); setStep(0); setStage("quiz"); dispatch("QUIZ_STARTED");
+    const journey = journeyRef.current;
+    if (!journey) return;
+    stopSpeaking();
+    setJourney({
+      ...journey,
+      stage: "quiz",
+      step: 0,
+      choice: null,
+      submitted: false,
+      feedback: "",
+    });
+    setStage("quiz");
+    answerLock.current = false;
+    dispatch("QUIZ_STARTED");
   }
 
-  async function answer(index: number) {
-    if (!lesson || answerLock.current) return;
+  function choose(choice: number) {
+    const journey = journeyRef.current;
+    if (!journey || journey.submitted || answerLock.current) return;
+    setJourney({ ...journey, choice });
+  }
+
+  async function submitAnswer() {
+    const journey = journeyRef.current;
+    if (
+      !journey ||
+      journey.choice === null ||
+      journey.submitted ||
+      answerLock.current
+    )
+      return;
     answerLock.current = true;
-    stopSpeaking(); setAnswering(true); setSelected(index);
-    const question = lesson.quiz[step];
-    if (index === question.answerIndex) {
-      setCorrect((value) => value + 1);
-      setFeedback("¡Qué chévere! Descubriste la respuesta. Sigamos explorando.");
-    } else {
+    setBusy(true);
+    stopSpeaking();
+    const question = journey.lesson.quiz[journey.step];
+    const correct = journey.choice === question.answerIndex;
+    let feedback = (
+      findAdventure(journey.lesson.topic)?.explanations[journey.step] ??
+      `La respuesta es ${question.options[question.answerIndex]}.`
+    ).replace(/^(¡Casi!|¡Mira esta pista!)\s*/, "");
+    if (!correct) {
       dispatch("CHILD_NEEDS_HELP");
-      try { setFeedback((await lessonService.getReexplanation(lesson, step, index)).text); }
-      catch { setFeedback(`¡Casi! La respuesta es «${question.options[question.answerIndex]}». Vamos a aprenderlo juntos.`); }
+      try {
+        feedback = (
+          await lessonService.getReexplanation(
+            journey.lesson,
+            journey.step,
+            journey.choice,
+          )
+        ).text;
+      } catch {
+        feedback = `Probemos de otra forma: la respuesta es «${question.options[question.answerIndex]}». ${question.hint}`;
+      }
     }
-    setAnswering(false);
+    setJourney({
+      ...journey,
+      submitted: true,
+      correct: journey.correct + (correct ? 1 : 0),
+      feedback,
+    });
+    setBusy(false);
   }
 
   function nextQuestion() {
-    if (!lesson) return;
+    const journey = journeyRef.current;
+    if (!journey || !journey.submitted || busy) return;
     stopSpeaking();
-    if (step + 1 < lesson.quiz.length) {
-      setStep(step + 1); setSelected(null); setFeedback(""); answerLock.current = false; dispatch("QUIZ_STARTED");
-    } else {
-      const next: Progress = { stars: progress.stars + 1 + correct, sessions: progress.sessions + 1,
-        correct: progress.correct + correct, questions: progress.questions + lesson.quiz.length,
-        help: progress.help + help, stickers: [...new Set([...progress.stickers, lesson.sticker.name])] };
+    if (journey.step + 1 < journey.lesson.quiz.length) {
+      setJourney({
+        ...journey,
+        step: journey.step + 1,
+        choice: null,
+        submitted: false,
+        feedback: "",
+      });
+      answerLock.current = false;
+      dispatch("QUIZ_STARTED");
+    } else if (!rewarded.current) {
+      rewarded.current = true;
+      const next = awardProgress(progress, journey);
       setProgress(next);
-      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(next)); } catch { /* Keep in-memory progress. */ }
-      setStage("done"); dispatch("REWARD_EARNED");
+      storeLocal(PROGRESS_KEY, next);
+      clearJourney();
+      setResume(null);
+      setStage("done");
+      dispatch("REWARD_EARNED");
     }
   }
 
-  function home() {
-    stopSpeaking(); stopListening.current?.(); setListening(false);
-    setStage("start"); setFeedback(""); setTopic(""); dispatch("APP_READY");
+  function helpWithCard() {
+    const journey = journeyRef.current;
+    if (!journey) return;
+    setJourney({
+      ...journey,
+      help: journey.help + 1,
+      feedback: getCardSupport(journey.lesson, journey.step),
+    });
+    dispatch("CHILD_NEEDS_HELP");
   }
 
-  const card = lesson?.cards[step];
-  const question = lesson?.quiz[step];
-  const active = stage === "lesson" || stage === "quiz";
+  function hint() {
+    const journey = journeyRef.current;
+    if (!journey || journey.submitted || answerLock.current) return;
+    setJourney({
+      ...journey,
+      help: journey.help + 1,
+      feedback: journey.lesson.quiz[journey.step].hint,
+    });
+    dispatch("CHILD_NEEDS_HELP");
+  }
+
+  function onMic() {
+    if (listening) {
+      stopListening.current?.();
+      setListening(false);
+      return;
+    }
+    stopSpeaking();
+    setListening(true);
+    stopListening.current = listen(
+      (text) => {
+        setTopic(text.slice(0, 100));
+        setHomeMessage("");
+      },
+      () => setListening(false),
+      () =>
+        setHomeMessage(
+          "No pudimos usar el micrófono. Puedes escribir tu pregunta y tocar Vamos.",
+        ),
+    );
+  }
+
+  const currentAdventure = journey
+    ? findAdventure(journey.lesson.topic)
+    : undefined;
 
   return (
-    <main className="app-shell">
-      <a className="skip-link" href="#adventure">Saltar a la aventura</a>
+    <main
+      className="app-shell"
+      data-large-text={preferences.largeText}
+      data-reduce-motion={preferences.reduceMotion}
+    >
+      <a className="skip-link" href="#adventure">
+        Saltar a la aventura
+      </a>
       <header className="app-header">
-        <button className="brand" onClick={home} disabled={stage === "loading" || answering} aria-label="Chispa, volver al inicio"><span className="brand-spark" aria-hidden="true">✳</span> chispa<span className="brand-dot">.</span></button>
-        <nav aria-label="Mi espacio" className="header-actions">
-          <span className="star-counter" aria-label={`${progress.stars} estrellas`}>★ <span>{progress.stars}</span></span>
-          <button className="quiet-button" aria-expanded={albumOpen} onClick={() => setAlbumOpen(!albumOpen)}>Mi álbum</button>
-          <button className="quiet-button adult-toggle" aria-expanded={adultOpen} onClick={() => setAdultOpen(!adultOpen)}>Para adultos</button>
+        <button
+          className="brand"
+          onClick={pause}
+          disabled={stage === "loading" || busy}
+          aria-label="Inicio de Chispa"
+        >
+          <span className="brand-spark">
+            <Icon name="spark" size={32} />
+          </span>
+          chispa<span className="brand-dot">.</span>
+        </button>
+        <nav className="header-actions" aria-label="Mi espacio">
+          <span
+            className="star-counter"
+            aria-label={`${progress.stars} estrellas`}
+          >
+            <Icon name="star" size={19} />
+            <strong>{progress.stars}</strong>
+          </span>
+          <button
+            ref={albumToggle}
+            className="header-button"
+            aria-expanded={albumOpen}
+            aria-controls="album-panel"
+            onClick={() => {
+              setAlbumOpen(!albumOpen);
+              setAdultOpen(false);
+            }}
+          >
+            <Icon name="book" />
+            <span>Mi álbum</span>
+          </button>
+          <details className="settings-menu">
+            <summary className="header-button">
+              <Icon name="settings" />
+              <span>Lectura y movimiento</span>
+            </summary>
+            <div className="settings-panel">
+              <strong>A tu manera</strong>
+              <p>Elige cómo te resulta más cómodo aprender.</p>
+              <label>
+                <input
+                  type="checkbox"
+                  checked={preferences.largeText}
+                  onChange={(event) =>
+                    changePreferences({
+                      ...preferences,
+                      largeText: event.target.checked,
+                    })
+                  }
+                />
+                <span>Texto más grande</span>
+              </label>
+              <label>
+                <input
+                  type="checkbox"
+                  checked={preferences.reduceMotion}
+                  onChange={(event) =>
+                    changePreferences({
+                      ...preferences,
+                      reduceMotion: event.target.checked,
+                    })
+                  }
+                />
+                <span>Sin animaciones</span>
+              </label>
+              <small>
+                También respetamos la preferencia de movimiento de tu
+                dispositivo.
+              </small>
+            </div>
+          </details>
         </nav>
       </header>
-      {albumOpen && <section className="drawer" aria-label="Mi álbum"><h2>Mi álbum de descubrimientos</h2><p>{progress.stickers.length ? progress.stickers.join(" · ") : "Tu primer sticker te espera al terminar una aventura."}</p></section>}
-      {adultOpen && <section className="drawer adult-panel" aria-label="Panel adulto demo"><p className="eyebrow">ACOMPAÑAMIENTO · DEMO LOCAL</p><h2>Cada descubrimiento cuenta</h2><div className="stat-grid"><p><strong>{progress.sessions}</strong>Aventuras completadas</p><p><strong>{progress.correct}/{progress.questions}</strong>Respuestas acertadas</p><p><strong>{progress.help}</strong>Ayudas solicitadas</p></div><p>Estos contadores describen la actividad de esta demo. No son un diagnóstico ni determinan cómo aprende un niño. Se guardan solo en este navegador.</p></section>}
+
+      {albumOpen && (
+        <section
+          id="album-panel"
+          className="drawer album-panel"
+          ref={albumPanel}
+          tabIndex={-1}
+          aria-labelledby="album-title"
+        >
+          <div className="section-heading">
+            <div>
+              <p className="eyebrow">TU CUADERNO DE LOGROS</p>
+              <h2 id="album-title">Mira todo lo que has descubierto</h2>
+            </div>
+            <button
+              className="text-button"
+              onClick={() => {
+                setAlbumOpen(false);
+                albumToggle.current?.focus();
+              }}
+            >
+              Cerrar álbum
+            </button>
+          </div>
+          <div className="album-grid">
+            {adventures.map((adventure) => {
+              const earned = progress.stickers.includes(
+                adventure.lesson.sticker.name,
+              );
+              return (
+                <div
+                  key={adventure.id}
+                  className={`album-badge ${earned ? "badge-earned" : ""}`}
+                >
+                  <AdventureArt subject={adventure.id} />
+                  <strong>{adventure.lesson.sticker.name}</strong>
+                  <span>
+                    {earned
+                      ? "¡Ya es tuyo!"
+                      : "Te espera al completar la aventura"}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+          {progress.stickers
+            .filter(
+              (name) =>
+                !adventures.some(
+                  (adventure) => adventure.lesson.sticker.name === name,
+                ),
+            )
+            .map((name) => (
+              <p className="extra-badge" key={name}>
+                <Icon name="star" />
+                {name}
+              </p>
+            ))}
+          <p className="small-note">
+            Cada aventura suma. Puedes volver a jugar sin perder tus logros.
+          </p>
+        </section>
+      )}
+
+      {adultOpen && (
+        <section
+          className="drawer adult-panel"
+          ref={adultPanel}
+          tabIndex={-1}
+          aria-labelledby="adult-title"
+        >
+          <div className="section-heading">
+            <div>
+              <p className="eyebrow">PARA QUIENES ACOMPAÑAN</p>
+              <h2 id="adult-title">Un vistazo al recorrido</h2>
+            </div>
+            <button
+              className="text-button"
+              onClick={() => {
+                setAdultOpen(false);
+                adultToggle.current?.focus();
+              }}
+            >
+              Cerrar panel
+            </button>
+          </div>
+          <div className="stat-grid">
+            <p>
+              <strong>{progress.sessions}</strong>Aventuras completadas
+            </p>
+            <p>
+              <strong>
+                {progress.correct}/{progress.questions}
+              </strong>
+              Respuestas acertadas
+            </p>
+            <p>
+              <strong>{progress.help}</strong>Ayudas solicitadas
+            </p>
+          </div>
+          <p>
+            Son contadores de actividad en este navegador. No son un diagnóstico
+            ni determinan cómo aprende una persona.
+          </p>
+          <p className="adult-tip">
+            <strong>Una idea para acompañar:</strong> pregunta «¿qué
+            descubriste?» y deja que lo explique con sus palabras, un dibujo o
+            un ejemplo.
+          </p>
+        </section>
+      )}
 
       <div id="adventure" className="adventure">
-        {stage === "start" && <>
-          <section className="welcome-grid">
-            <div className="welcome-copy"><p className="eyebrow"><span className="tiny-spark">✦</span> LA CURIOSIDAD ES EL COMIENZO</p><h1 ref={heading} tabIndex={-1}>Pequeñas preguntas.<br /><span>Grandes aventuras.</span></h1><p className="intro">¡Hola! Soy Lulo, tu compañero de descubrimientos. ¿Qué vamos a explorar juntos hoy?</p><form className="topic-form" onSubmit={(event) => { event.preventDefault(); startLesson(topic); }}><label htmlFor="topic">Quiero aprender sobre…</label><div className="topic-input"><input id="topic" value={topic} minLength={2} maxLength={100} required onChange={(event) => setTopic(event.target.value)} placeholder="Dinosaurios, planetas, el mar…" />{micAvailable && <button type="button" className="mic-button" onClick={onMic} disabled={listening} aria-label="Dictar el tema">{listening ? "•••" : "🎙"}</button>}</div><Button type="submit" disabled={topic.trim().length < 2}>¡Vamos a descubrir! <span aria-hidden="true">↗</span></Button></form><p className="form-help" role="status">{listening ? "Te escucho. Después puedes revisar el texto." : isDemo ? "Demo sin claves: cualquier tema abre la aventura de Dinosaurios." : "Elige un tema y prepara tu próxima aventura."}</p>{!micAvailable && <p className="form-help">Puedes escribir tu idea; este navegador no admite dictado.</p>}</div>
-            <div className="mascot-world"><span className="world-orbit" aria-hidden="true" /><span className="floating-note">¡Aprendamos algo chévere!</span><LuloAvatar size={320} /><span className="mascot-caption">LULO <span>Tu amigo explorador</span></span></div>
+        {stage === "start" && (
+          <>
+            {resume && (
+              <section className="resume-banner" aria-label="Aventura guardada">
+                <span className="resume-icon">
+                  <Icon name="book" size={28} />
+                </span>
+                <div>
+                  <strong>Tu aventura te está esperando</strong>
+                  <p>
+                    {resume.lesson.topic} ·{" "}
+                    {resume.stage === "lesson" ? "Descubrimiento" : "Pregunta"}{" "}
+                    {resume.step + 1} de{" "}
+                    {resume.stage === "lesson"
+                      ? resume.lesson.cards.length
+                      : resume.lesson.quiz.length}
+                  </p>
+                </div>
+                <button
+                  className="primary-button compact-button"
+                  onClick={resumeJourney}
+                >
+                  Continuar
+                  <Icon name="arrow" />
+                </button>
+              </section>
+            )}
+            <section className="welcome-grid">
+              <div className="welcome-copy">
+                <span className="pill-label">
+                  <span className="status-dot" />
+                  APRENDE A TU RITMO
+                </span>
+                <h1 ref={heading} tabIndex={-1}>
+                  La curiosidad nos lleva
+                  <br />
+                  <span>a lugares increíbles.</span>
+                </h1>
+                <p className="intro">
+                  Soy Lulo. Elige una aventura y descubramos algo nuevo, una
+                  pregunta a la vez.
+                </p>
+                <div className="hero-actions">
+                  <button
+                    className="primary-button"
+                    onClick={() => startLesson("Dinosaurios")}
+                  >
+                    Explorar dinosaurios
+                    <Icon name="arrow" />
+                  </button>
+                  <button
+                    className="text-button surprise-button"
+                    onClick={() =>
+                      startLesson(
+                        adventures[
+                          Math.floor(Math.random() * adventures.length)
+                        ].title,
+                      )
+                    }
+                  >
+                    <Icon name="spark" size={18} />
+                    Sorpréndeme
+                  </button>
+                </div>
+                <div className="hero-promise">
+                  <span>
+                    <Icon name="clock" size={16} />
+                    4–5 minutos por aventura
+                  </span>
+                  <span>
+                    <Icon name="sound" size={16} />
+                    Puedes leer o escuchar
+                  </span>
+                </div>
+                <details className="how-it-works">
+                  <summary>¿Cómo se juega?</summary>
+                  <ol>
+                    <li>
+                      <strong>Descubre:</strong> mira las tarjetas y escucha si
+                      quieres.
+                    </li>
+                    <li>
+                      <strong>Juega:</strong> elige una respuesta. Siempre
+                      puedes pedir ayuda.
+                    </li>
+                    <li>
+                      <strong>Celebra:</strong> guarda tu sticker en el álbum.
+                    </li>
+                  </ol>
+                </details>
+              </div>
+              <div className="mascot-world">
+                <span className="world-orbit" aria-hidden="true" />
+                <span className="orbit-star orbit-star-one" aria-hidden="true">
+                  ✦
+                </span>
+                <span className="orbit-star orbit-star-two" aria-hidden="true">
+                  ✧
+                </span>
+                <div className="mascot-bubble" role="status">
+                  {greetings[greeting % greetings.length]}
+                </div>
+                <button
+                  className="mascot-greeting"
+                  onClick={() => setGreeting(greeting + 1)}
+                  aria-label="Saludar a Lulo"
+                >
+                  <LuloAvatar key={greeting} size={290} />
+                  <span>
+                    Toca a Lulo para saludar <span aria-hidden="true">♡</span>
+                  </span>
+                </button>
+                <span className="mascot-name">
+                  LULO <span>Tu compañero de descubrimientos</span>
+                </span>
+              </div>
+            </section>
+
+            <section
+              className="explore-section"
+              aria-labelledby="explore-title"
+            >
+              <div className="section-heading">
+                <div>
+                  <p className="eyebrow">TU PRÓXIMO DESCUBRIMIENTO</p>
+                  <h2 id="explore-title">¿A dónde quieres ir?</h2>
+                </div>
+                <span className="catalog-note">
+                  Tres aventuras para empezar
+                </span>
+              </div>
+              <div className="topic-grid">
+                {adventures.map((adventure, index) => (
+                  <button
+                    key={adventure.id}
+                    className={`topic-tile topic-${adventure.id}`}
+                    onClick={() => startLesson(adventure.title)}
+                    aria-label={`Explorar ${adventure.title}`}
+                  >
+                    <div className="topic-picture">
+                      <span className="topic-number">0{index + 1}</span>
+                      <AdventureArt subject={adventure.id} />
+                      <span className="topic-arrow">
+                        <Icon name="arrow" size={19} />
+                      </span>
+                    </div>
+                    <div className="topic-copy">
+                      <h3>{adventure.title}</h3>
+                      <p>{adventure.description}</p>
+                      <span>
+                        <Icon name="clock" size={15} />
+                        {adventure.minutes} min <i aria-hidden="true">·</i>{" "}
+                        {adventure.lesson.cards.length} descubrimientos
+                      </span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </section>
+
+            <section className="your-question" aria-labelledby="question-title">
+              <div>
+                <span className="question-symbol">
+                  <Icon name="help" size={27} />
+                </span>
+                <h2 id="question-title">¿Tienes una pregunta en mente?</h2>
+                <p>
+                  {isDemo
+                    ? "Puedes escribir Dinosaurios, Planetas o El océano. Pronto tendremos más aventuras."
+                    : "Escribe qué te gustaría descubrir y prepararemos una aventura."}
+                </p>
+              </div>
+              <form
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  startLesson(topic);
+                }}
+              >
+                <label className="sr-only" htmlFor="topic">
+                  ¿Qué quieres aprender?
+                </label>
+                <div className="topic-input">
+                  <input
+                    ref={topicInput}
+                    id="topic"
+                    value={topic}
+                    onChange={(event) => setTopic(event.target.value)}
+                    required
+                    minLength={2}
+                    maxLength={100}
+                    placeholder="Por ejemplo: el océano"
+                    aria-describedby="topic-message"
+                  />
+                  {micAvailable && (
+                    <button
+                      type="button"
+                      className={`mic-button ${listening ? "mic-active" : ""}`}
+                      onClick={onMic}
+                      aria-label={
+                        listening ? "Detener dictado" : "Dictar mi pregunta"
+                      }
+                      aria-pressed={listening}
+                    >
+                      <Icon name={listening ? "stop" : "mic"} />
+                    </button>
+                  )}
+                </div>
+                <button type="submit" className="secondary-button">
+                  Vamos
+                  <Icon name="arrow" />
+                </button>
+              </form>
+              <p
+                id="topic-message"
+                className={`small-note ${homeMessage ? "form-message" : ""}`}
+                role="status"
+              >
+                {homeMessage ||
+                  (listening
+                    ? "Te escucho. Revisa el texto y toca Vamos cuando esté listo."
+                    : !micAvailable
+                      ? "Puedes escribir; el dictado no está disponible en este navegador."
+                      : "El micrófono es opcional. Tú decides cómo preguntar.")}
+              </p>
+            </section>
+          </>
+        )}
+
+        {stage === "loading" && (
+          <section className="center-stage loading-stage" aria-busy="true">
+            <LuloAvatar scene="loading" size={210} />
+            <p className="eyebrow">
+              PREPARANDO {requestedTopic.toLocaleUpperCase("es")}
+            </p>
+            <h1 ref={heading} tabIndex={-1}>
+              Una nueva aventura está por empezar.
+            </h1>
+            <p role="status">Lulo está reuniendo tus descubrimientos.</p>
+            <div className="loading-dots" aria-hidden="true">
+              <span />
+              <span />
+              <span />
+            </div>
           </section>
-          <section className="explore-section" aria-label="Ideas para explorar"><div className="section-heading"><h2>Una idea para empezar</h2><span>Elige tu próxima aventura</span></div><div className="topic-grid">{[{ icon: "🦕", title: "Dinosaurios", caption: "Un viaje a un mundo gigante", tone: "mint" }, { icon: "🪐", title: "Planetas", caption: "Próximamente en la demo", tone: "lavender" }, { icon: "🐋", title: "Animales", caption: "Próximamente en la demo", tone: "peach" }].map((item) => <button key={item.title} className={`topic-tile ${item.tone}`} disabled={isDemo && item.title !== "Dinosaurios"} onClick={() => { setTopic(item.title); startLesson(item.title); }}><span className="topic-icon" aria-hidden="true">{item.icon}</span><span><strong>{item.title}</strong><small>{isDemo ? item.caption : "Una nueva aventura por descubrir"}</small></span><span aria-hidden="true">↗</span></button>)}</div></section>
-          <div className="journey-strip"><span>01 <strong>Descubre</strong></span><span aria-hidden="true">····</span><span>02 <strong>Juega y aprende</strong></span><span aria-hidden="true">····</span><span>03 <strong>Colecciona logros</strong></span></div>
-        </>}
+        )}
+        {stage === "error" && (
+          <section className="center-stage">
+            <LuloAvatar scene="encourage" size={210} />
+            <h1 ref={heading} tabIndex={-1}>
+              Nos faltó una pequeña pista.
+            </h1>
+            <p role="alert">
+              No pudimos preparar esta aventura. Podemos volver a intentarlo.
+            </p>
+            <button
+              className="primary-button"
+              onClick={() => startLesson(requestedTopic)}
+            >
+              Intentar de nuevo
+              <Icon name="arrow" />
+            </button>
+            <button className="text-button" onClick={pause}>
+              Volver al inicio
+            </button>
+          </section>
+        )}
 
-        {stage === "loading" && <section className="center-stage" aria-busy="true"><LuloAvatar scene="loading" /><p className="eyebrow">UNA AVENTURA EN CAMINO</p><h1 ref={heading} tabIndex={-1}>Estoy preparando algo chévere para ti…</h1><p role="status">Buscando grandes descubrimientos para pequeñas preguntas.</p></section>}
-        {stage === "error" && <section className="center-stage"><LuloAvatar scene="encourage" /><h1 ref={heading} tabIndex={-1}>¡Uy! Nos enredamos un poquito.</h1><p role="alert">Podemos volver a intentarlo juntos.</p><Button onClick={() => startLesson(topic)}>Intentar de nuevo</Button><button className="quiet-button" onClick={home}>Volver al inicio</button></section>}
+        {active && journey && (
+          <>
+            <div className="journey-top">
+              <JourneyTrail stage={stage} />
+              <button
+                className="text-button pause-button"
+                onClick={pause}
+                disabled={busy}
+              >
+                <Icon name="pause" size={18} />
+                Pausar y guardar
+              </button>
+            </div>
+            <section className="learning-layout">
+              <aside className="learning-companion">
+                <LuloAvatar
+                  scene={lulo.scene}
+                  isSpeaking={lulo.isSpeaking}
+                  size={190}
+                />
+                <div className="companion-note">
+                  <strong>Estoy contigo.</strong>
+                  <p>
+                    {lulo.scene === "encourage"
+                      ? "Pedir ayuda también es aprender. Vamos paso a paso."
+                      : stage === "quiz"
+                        ? "Piensa con calma. Puedes cambiar tu opción antes de comprobar."
+                        : "Lee, escucha o pide otra explicación. Tú eliges."}
+                  </p>
+                </div>
+                <span className="saved-note">
+                  <Icon name="check" size={14} />
+                  Tu avance se guarda en este navegador.
+                </span>
+              </aside>
+              <LearningCard
+                journey={journey}
+                busy={busy}
+                speaking={lulo.isSpeaking}
+                voiceAvailable={voiceAvailable}
+                heading={heading}
+                onRead={read}
+                onStop={stopSpeaking}
+                onCard={showCard}
+                onQuiz={startQuiz}
+                onChoose={choose}
+                onSubmit={submitAnswer}
+                onNext={nextQuestion}
+                onHelp={helpWithCard}
+                onHint={hint}
+              />
+            </section>
+          </>
+        )}
 
-        {active && lesson && <section className="learning-layout"><aside className="learning-companion"><p className="eyebrow">TU COMPAÑERO DE AVENTURA</p><LuloAvatar scene={lulo.scene} isSpeaking={lulo.isSpeaking} size={220} /><p className="companion-note">{lulo.scene === "encourage" ? "Vamos a mirarlo de otra forma. ¡Tú puedes!" : stage === "quiz" ? "Tómate tu tiempo. Estoy contigo." : "Cada pregunta nos lleva a un descubrimiento."}</p><button className="quiet-button" onClick={home} disabled={answering}>Salir de la aventura</button></aside><div className="lesson-panel"><div className="lesson-topline"><span>{stage === "lesson" ? lesson.topic : "Juega con lo que aprendiste"}</span><span>{step + 1} / {stage === "lesson" ? lesson.cards.length : lesson.quiz.length}</span></div><progress aria-label={stage === "lesson" ? "Progreso de la clase" : "Progreso de la trivia"} value={step + 1} max={stage === "lesson" ? lesson.cards.length : lesson.quiz.length} />
-          {stage === "lesson" && card && <><p className="eyebrow">DESCUBRIMIENTO {String(step + 1).padStart(2, "0")}</p><h1 ref={heading} tabIndex={-1}>{card.title}</h1><LessonVisual index={step} title={card.title} demo={isDemo} /><p className="lesson-text">{card.text}</p><div className="lesson-tools"><button className="tool-button" disabled={!voiceAvailable} onClick={() => read(card.speech)}>♪ Escuchar</button><button className="tool-button" onClick={() => { setFeedback(""); dispatch("LESSON_CARD_SHOWN"); if (voiceAvailable) read(card.speech); }}>↻ Otra vez</button><button className="tool-button" onClick={() => { setHelp(help + 1); dispatch("CHILD_NEEDS_HELP"); setFeedback(getCardSupport(lesson, step)); }}>♡ No entendí</button></div>{!voiceAvailable && <p className="form-help">La lectura en voz alta no está disponible. Puedes leer el texto.</p>}{feedback && <p className="feedback" role="status">{feedback}</p>}<div className="lesson-navigation"><Button tone="plain" disabled={step === 0} onClick={() => showCard(step - 1)}>← Anterior</Button><Button onClick={() => step + 1 < lesson.cards.length ? showCard(step + 1) : startQuiz()}>{step + 1 < lesson.cards.length ? "Siguiente →" : "¡A la trivia! →"}</Button></div></>}
-          {stage === "quiz" && question && <><p className="eyebrow">TU TURNO DE EXPLORAR</p><h1 ref={heading} tabIndex={-1}>{question.question}</h1><p className="quiz-intro">Elige una respuesta. Aquí también aprendemos al intentar.</p><div className="answer-options">{question.options.map((option, index) => <button key={option} className={`answer-option ${selected === index ? "is-selected" : ""} ${selected !== null && !answering && index === question.answerIndex ? "is-correct" : ""}`} disabled={selected !== null} onClick={() => answer(index)}><span className="option-letter">{String.fromCharCode(65 + index)}</span>{option}{selected !== null && !answering && index === question.answerIndex && <span aria-label="Respuesta correcta">✓</span>}</button>)}</div><div className="lesson-tools"><button className="tool-button" disabled={!voiceAvailable} onClick={() => read(question.question)}>♪ Escuchar pregunta</button><button className="tool-button" disabled={selected !== null} onClick={() => { setHelp(help + 1); setFeedback(question.hint); dispatch("CHILD_NEEDS_HELP"); }}>✧ Una pista</button></div><div role="status" aria-live="polite">{answering ? <p className="feedback">Veamos esta idea juntos…</p> : feedback && <p className="feedback">{feedback}</p>}</div>{selected !== null && !answering && <Button onClick={nextQuestion}>{step + 1 < lesson.quiz.length ? "Seguir explorando →" : "¡Ver mi premio! →"}</Button>}</>}
-        </div></section>}
-
-        {stage === "done" && lesson && <section className="center-stage reward-stage"><p className="eyebrow">OTRA AVENTURA EN TU HISTORIA</p><LuloAvatar scene="reward" size={220} /><h1 ref={heading} tabIndex={-1}>¡Lo lograste, explorador!</h1><p>Descubriste algo nuevo y acertaste {correct} de {lesson.quiz.length} preguntas.</p><div className="earned-stars">★ +{1 + correct} estrellas</div><p className="form-help">Una por participar y una por cada respuesta acertada.</p><div className="reward-sticker"><span aria-hidden="true">🦕</span><strong>{lesson.sticker.name}</strong><small>Ya está en tu álbum</small></div><Button onClick={home}>Descubrir otra aventura ↗</Button><button className="quiet-button" onClick={() => { setAlbumOpen(true); home(); }}>Abrir mi álbum</button></section>}
+        {stage === "done" && journey && (
+          <>
+            <JourneyTrail stage="done" />
+            <section className="reward-layout content-enter">
+              <div className="reward-copy">
+                <span className="pill-label">
+                  <Icon name="check" size={16} />
+                  AVENTURA COMPLETADA
+                </span>
+                <h1 ref={heading} tabIndex={-1}>
+                  ¡Mira hasta dónde
+                  <br />
+                  <span>te llevó tu curiosidad!</span>
+                </h1>
+                <p>
+                  Exploraste {journey.lesson.cards.length} descubrimientos sobre{" "}
+                  {journey.lesson.topic.toLocaleLowerCase("es")} y acertaste{" "}
+                  {journey.correct} de {journey.lesson.quiz.length} preguntas.
+                </p>
+                <div className="earned-stars">
+                  <Icon name="star" size={26} />+{1 + journey.correct} estrellas{" "}
+                  <small>Una por explorar y una por cada acierto.</small>
+                </div>
+                <div className="hero-actions">
+                  <button className="primary-button" onClick={pause}>
+                    Otra aventura
+                    <Icon name="arrow" />
+                  </button>
+                  <button
+                    className="secondary-button"
+                    onClick={() => {
+                      setAlbumOpen(true);
+                      setAdultOpen(false);
+                    }}
+                  >
+                    <Icon name="book" />
+                    Ver mi álbum
+                  </button>
+                </div>
+                <div className="offline-mission">
+                  <Icon name="spark" />
+                  <div>
+                    <strong>Lleva tu descubrimiento al mundo</strong>
+                    <p>
+                      {currentAdventure?.mission ??
+                        "Cuéntale a alguien lo que aprendiste, con tus palabras o con un dibujo."}
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div className="reward-portrait">
+                <LuloAvatar scene="reward" size={250} />
+                <div
+                  className={`reward-sticker art-${currentAdventure?.id ?? "book"}`}
+                >
+                  <AdventureArt subject={currentAdventure?.id} />
+                  <strong>{journey.lesson.sticker.name}</strong>
+                  <span>¡Un nuevo logro en tu álbum!</span>
+                </div>
+              </div>
+            </section>
+          </>
+        )}
       </div>
-      <footer className="app-footer"><span>Hecho con curiosidad y un poquito de Caribe.</span><span>{isDemo ? "Demo interactiva · Aprende a tu ritmo" : "Aprende a tu ritmo con Lulo"}</span></footer>
+
+      <footer className="app-footer">
+        <span className="footer-signature">
+          <Icon name="spark" size={17} />
+          Hecho con curiosidad y un poquito de Caribe.
+        </span>
+        <div>
+          <span>
+            {isDemo ? "Aventuras demo · Sin cuenta" : "Aprende con Lulo"}
+          </span>
+          <button
+            ref={adultToggle}
+            className="text-button"
+            aria-expanded={adultOpen}
+            onClick={() => {
+              setAdultOpen(!adultOpen);
+              setAlbumOpen(false);
+            }}
+          >
+            Para quienes acompañan
+          </button>
+        </div>
+      </footer>
     </main>
   );
 }
 
-function LessonVisual({ index, title, demo }: { index: number; title: string; demo: boolean }) {
-  return <figure className={`lesson-visual visual-${index % 3}`}><span className="visual-label">{demo ? "CUADERNO DE EXPLORACIÓN" : "TU ESPACIO PARA IMAGINAR"}</span><span className="visual-decoration" aria-hidden="true">✧</span><span className="discovery-icon" role="img" aria-label={demo ? ["Dinosaurio", "Tiranosaurio", "Alimentación", "Plantas", "Fósil"][index] ?? "Dinosaurio" : "Libro de descubrimientos"}>{demo ? ["🦕", "🦖", "🦴", "🌿", "🐚"][index] ?? "🦕" : "📖"}</span><figcaption>{title}<small>Ilustración de apoyo · imagina y descubre</small></figcaption></figure>;
+function JourneyTrail({ stage }: { stage: string }) {
+  const index = stage === "lesson" ? 0 : stage === "quiz" ? 1 : 2;
+  return (
+    <ol className="journey-trail" aria-label="Tu aventura">
+      {["Descubre", "Juega", "Celebra"].map((label, step) => (
+        <li
+          key={label}
+          className={step <= index ? "trail-reached" : ""}
+          aria-current={step === index ? "step" : undefined}
+        >
+          <span>
+            {step < index ? <Icon name="check" size={14} /> : step + 1}
+          </span>
+          {label}
+        </li>
+      ))}
+    </ol>
+  );
 }

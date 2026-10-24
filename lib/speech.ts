@@ -50,15 +50,15 @@ function recognitionCtor(): RecognitionCtor | null {
 
 export const canListen = () => recognitionCtor() !== null;
 
-export function listen(onText: (text: string) => void, onEnd: () => void) {
+export function listen(onText: (text: string) => void, onEnd: () => void, onError?: () => void) {
   const Ctor = recognitionCtor();
   if (!Ctor) { onEnd(); return () => {}; }
   const recognition = new Ctor();
   recognition.lang = "es-CO";
   recognition.interimResults = false;
   recognition.onresult = (event) => onText(event.results[0][0].transcript);
-  recognition.onerror = onEnd;
+  recognition.onerror = () => { onError?.(); onEnd(); };
   recognition.onend = onEnd;
-  try { recognition.start(); } catch { onEnd(); }
+  try { recognition.start(); } catch { onError?.(); onEnd(); }
   return () => { recognition.onresult = null; recognition.onerror = null; recognition.onend = null; recognition.abort(); };
 }

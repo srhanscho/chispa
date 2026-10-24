@@ -1,0 +1,18 @@
+{
+  "topic": "Planetas",
+  "style": "visual",
+  "level": "explorer",
+  "cover": { "kind": "illustration", "query": "friendly solar system" },
+  "cards": [
+    { "title": "Nuestro vecindario espacial", "text": "La Tierra es nuestro planeta. Es uno de los ocho planetas del sistema solar.", "speech": "¡Vamos al espacio! La Tierra es uno de los ocho planetas del sistema solar.", "image": { "kind": "illustration", "query": "Earth in the solar system" } },
+    { "title": "El Sol es una estrella", "text": "El Sol nos da luz y calor. Es una estrella, no un planeta.", "speech": "El Sol es una estrella. Su luz y su calor llegan a la Tierra.", "image": { "kind": "illustration", "query": "Sun and Earth" } },
+    { "title": "Un viaje alrededor del Sol", "text": "Los planetas se mueven alrededor del Sol. El camino que sigue un planeta se llama órbita.", "speech": "Los planetas viajan alrededor del Sol. Su camino se llama órbita.", "image": { "kind": "illustration", "query": "planet orbit around the Sun" } },
+    { "title": "Unos pequeños, otros gigantes", "text": "Los planetas no tienen todos el mismo tamaño. Júpiter es el más grande del sistema solar.", "speech": "Hay planetas de muchos tamaños. Júpiter es el más grande de nuestro sistema solar.", "image": { "kind": "illustration", "query": "Jupiter and Earth size comparison" } }
+  ],
+  "quiz": [
+    { "question": "¿Qué es el Sol?", "options": ["Una estrella", "Un planeta", "Una nube"], "answerIndex": 0, "hint": "Nos da luz y calor.", "reexplain": "El Sol es una estrella: produce luz y calor. La Tierra es un planeta." },
+    { "question": "¿Alrededor de qué viajan los planetas del sistema solar?", "options": ["De un árbol", "Del Sol", "De una montaña"], "answerIndex": 1, "hint": "Es la estrella de nuestro sistema solar.", "reexplain": "Imagina caminos que rodean al Sol. Los planetas siguen esos caminos, llamados órbitas." },
+    { "question": "¿Cuál es el planeta más grande del sistema solar?", "options": ["La Tierra", "Marte", "Júpiter"], "answerIndex": 2, "hint": "Su nombre empieza por J.", "reexplain": "Júpiter es el gigante de los ocho planetas. Es mucho más grande que la Tierra." }
+  ],
+  "sticker": { "name": "Explorador del espacio", "query": "friendly planet explorer badge" }
+}
