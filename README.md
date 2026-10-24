@@ -13,7 +13,8 @@ Built for Hacktoberfest Barranquilla 2026. All text and reasoning run on **Gemma
 | Illustrations | OpenAI Images API, cached so each image is paid once |
 | Voice | Web Speech API (speech synthesis and recognition) |
 | Adaptive engine | `lib/engine.ts`: per-style scores with epsilon-greedy selection, per-topic mastery |
-| Storage | `localStorage` in the browser; no accounts, no database |
+| Tutor agent | `/api/tutor` (chat with Lulo, returns actions) and `/api/suggest` (next topics) |
+| Accounts | Optional Supabase login for parents, saved courses and synced profiles; `localStorage` otherwise |
 
 The engine tracks five teaching styles (story, visual, analogy, step by step, game). After each lesson it scores the session from quiz accuracy, "No entendí" taps and abandonment, moves the used style's score toward that outcome, and picks the best style 80% of the time while exploring another 20% of the time.
 
@@ -31,6 +32,8 @@ Open http://localhost:3000. Without a `GEMINI_API_KEY` the app serves the cached
 npm test        # unit tests for the engine, JSON parsing and Wikimedia parsing
 npm run build
 ```
+
+See [docs/API.md](docs/API.md) for every route and the suggested UI flow.
 
 ## Project structure
 

@@ -3,6 +3,15 @@ import { GoogleGenAI, type Part } from "@google/genai";
 import type { z } from "zod";
 import { extractJson } from "./json";
 import { thinkingLevelFrom } from "./gemma-config";
+import { buildSuggestPrompt, buildTutorPrompt } from "./tutor-prompt";
+import {
+  SuggestReplySchema,
+  TutorReplySchema,
+  type LearnerSummary,
+  type SuggestReply,
+  type TutorReply,
+  type TutorRequest,
+} from "./tutor-schema";
 import { STYLE_DESCRIPTIONS } from "./engine";
 import {
   LessonSchema,
@@ -126,4 +135,12 @@ Return ONLY JSON: { "topic": string, "hook": string }`;
     { inlineData: { mimeType, data: imageBase64 } },
     { text: prompt },
   ]);
+}
+
+export function tutorReply(req: TutorRequest): Promise<TutorReply> {
+  return generateJson(TutorReplySchema, [{ text: buildTutorPrompt(req) }]);
+}
+
+export function suggestTopics(learner: LearnerSummary): Promise<SuggestReply> {
+  return generateJson(SuggestReplySchema, [{ text: buildSuggestPrompt(learner) }]);
 }

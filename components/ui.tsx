@@ -68,10 +68,13 @@ export function LessonImage({ request, alt }: { request: ImageRequest; alt: stri
   useEffect(() => {
     if (image) return;
     let cancelled = false;
-    fetch("/api/image", { method: "POST", body: JSON.stringify(request) })
+    fetch("/api/image", { method: "POST", body: JSON.stringify(request), signal: AbortSignal.timeout(60000) })
       .then((res) => (res.ok ? (res.json() as Promise<ImageResult>) : null))
-      .then((result) => {
-        if (cancelled || !result) return;
+      .catch(() => null)
+      .then((maybe) => {
+        // Never leave the card stuck on the loading Lulo: show the fallback if the server failed.
+        const result = maybe ?? { url: "/lulo.svg", source: "fallback" as const };
+        if (cancelled) return;
         setImage(result);
         // Data URLs are large; only remote URLs go to localStorage.
         if (!result.url.startsWith("data:") && result.source !== "fallback") {
