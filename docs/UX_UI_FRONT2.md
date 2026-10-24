@@ -1,6 +1,6 @@
 # Front2: investigación y decisiones de UX/UI
 
-Fecha: 24 de octubre de 2026. Público principal: personas de 6–10 años; acompañantes y otras personas también pueden usar los controles de lectura y navegación. Esta revisión combina investigación documental, inspección de la interfaz y pruebas funcionales. **No sustituye una prueba de usabilidad con niños ni demuestra mejoras de aprendizaje.**
+Fecha: 24 de octubre de 2026. Público principal: personas de 6–12 años; acompañantes y otras personas también pueden usar los controles de lectura y navegación. Esta revisión combina investigación documental, inspección de la interfaz y pruebas funcionales. **No sustituye una prueba de usabilidad con niños ni demuestra mejoras de aprendizaje.**
 
 ## Qué aprendimos y qué cambiamos
 

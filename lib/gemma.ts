@@ -132,7 +132,7 @@ Return ONLY JSON: { "note": string, "nextStyle": "story" | "visual" | "analogy" 
 const PhotoReadingSchema = TopicFromPhotoSchema.extend({ seen: z.string().optional() });
 
 export async function topicFromPhoto(imageBase64: string, mimeType: string) {
-  const prompt = `A child aged 6 to 10 took this photo because they want to learn about the thing in it.
+  const prompt = `A child aged 6 to 12 took this photo because they want to learn about the thing in it.
 
 Step 1 - Look: identify the single main object in the photo as concretely as possible
 (for example "mango", "gato", "guitarra", "tenis", "bicicleta", "luna", "iguana"). Prefer the specific
