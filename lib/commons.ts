@@ -21,7 +21,7 @@ const stripHtml = (html: string) => html.replace(/<[^>]*>/g, "").trim();
 // Book scans and documents render as page thumbnails that make no sense for kids.
 const SCANNED = /\.(pdf|djvu|tiff?)$/i;
 // Internet Archive book scans: "(IA identifier)" or "(year) (Flickr id)" in the file name.
-const BOOK_SCAN = /\(IA [^)]+\)|\(\d{10,}\)/;
+const BOOK_SCAN = /\(IA [^)]+\)|\(\d{4}\) \(\d{10,}\)/;
 
 const normalize = (text: string) =>
   text.normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase();
