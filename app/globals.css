@@ -1,12 +1,12 @@
 @import "tailwindcss";
 
 @theme {
-  --color-iguana: #3fa34d;
-  --color-sea: #14a3b8;
-  --color-mango: #ffc93c;
-  --color-coral: #ff6b5b;
-  --color-sand: #fff6e5;
-  --color-ink: #1f2a44;
+  --color-iguana: #1fcb4f;
+  --color-sea: #00b8d9;
+  --color-mango: #ffc21a;
+  --color-coral: #ff5247;
+  --color-sand: #fff4d9;
+  --color-ink: #0d0d0d;
   --font-display: var(--font-baloo);
   --font-sans: var(--font-nunito);
 }
@@ -2522,12 +2522,12 @@ progress::-moz-progress-bar {
 }
 
 /* ---------------------------------------------------------------------------
-   Chispa classic theme: sand background, thick ink outlines, solid drop shadows,
+   Lulo theme: sand background, thick ink outlines, solid drop shadows,
    iguana / sea / mango / coral accents and Baloo headings. This layer only restyles
    colors, borders, shadows and type; layout and responsive rules above stay as they are.
    --------------------------------------------------------------------------- */
 :root {
-  --ink: #1f2a44;
+  --ink: #0d0d0d;
   --outline: 4px solid var(--ink);
   --outline-thin: 3px solid var(--ink);
   --drop: 0 4px 0 var(--ink);
@@ -2535,7 +2535,7 @@ progress::-moz-progress-bar {
 }
 
 body {
-  background: #fff6e5;
+  background: #fff4d9;
   color: var(--ink);
 }
 h1,
@@ -2545,10 +2545,10 @@ h3,
   color: var(--ink);
 }
 .brand {
-  color: #3fa34d;
+  color: #1fcb4f;
 }
 :focus-visible {
-  outline-color: #14a3b8;
+  outline-color: #00b8d9;
 }
 
 /* Header */
@@ -2557,7 +2557,7 @@ h3,
 }
 .star-counter {
   border: var(--outline);
-  background: #ffc93c;
+  background: #ffc21a;
   color: var(--ink);
   font-family: var(--font-display), system-ui, sans-serif;
   font-weight: 800;
@@ -2585,7 +2585,7 @@ h3,
 }
 .primary-button,
 .tutor-launch {
-  background: #3fa34d;
+  background: #1fcb4f;
   color: #fff;
 }
 .secondary-button,
@@ -2606,7 +2606,7 @@ h3,
 }
 .primary-button:hover:not(:disabled),
 .tutor-launch:hover {
-  background: #379345;
+  background: #18b043;
 }
 .text-button {
   color: var(--ink);
@@ -2650,7 +2650,7 @@ h3,
 .profile-insight {
   border: var(--outline-thin);
   border-radius: 20px;
-  background: #fff6e5;
+  background: #fff4d9;
   color: var(--ink);
 }
 
@@ -2667,17 +2667,17 @@ h3,
 }
 .mic-button {
   border-left: var(--outline-thin);
-  background: #14a3b8;
+  background: #00b8d9;
   color: #fff;
 }
 
 /* Labels */
 .eyebrow {
-  color: #14a3b8;
+  color: #00b8d9;
 }
 .pill-label {
   border: var(--outline-thin);
-  background: #ffc93c;
+  background: #ffc21a;
   color: var(--ink);
 }
 
@@ -2685,10 +2685,10 @@ h3,
 .lesson-photo-frame {
   border: var(--outline);
   border-radius: 20px;
-  background: #fff6e5;
+  background: #fff4d9;
 }
 .card-progress-label {
-  color: #14a3b8;
+  color: #00b8d9;
 }
 .answer-choice {
   border: var(--outline);
@@ -2697,29 +2697,29 @@ h3,
   box-shadow: var(--drop);
 }
 .choice-picked {
-  background: #e3f5f8;
-  border-color: #14a3b8;
+  background: #d6f5fb;
+  border-color: #00b8d9;
 }
 .choice-right {
-  background: #e6f4e4;
-  border-color: #3fa34d;
+  background: #d9f8e1;
+  border-color: #1fcb4f;
 }
 .answer-feedback {
   border: var(--outline-thin);
-  background: #fff1cc;
+  background: #ffedb8;
   color: var(--ink);
 }
 .feedback-success {
-  background: #e6f4e4;
+  background: #d9f8e1;
 }
 
 /* Tutor chat */
 .bubble-lulo {
-  background: #e6f4e4;
+  background: #d9f8e1;
   border: 2px solid var(--ink);
 }
 .bubble-child {
-  background: #fff1cc;
+  background: #ffedb8;
   border: 2px solid var(--ink);
 }
 .mascot-bubble {
@@ -2729,7 +2729,7 @@ h3,
 
 /* Journey steps */
 .trail-reached > span {
-  background: #3fa34d;
+  background: #1fcb4f;
   border-color: var(--ink);
   color: #fff;
 }
@@ -2744,20 +2744,20 @@ h3,
 /* Classic theme: accents that were still the darker green */
 .welcome-copy h1 span,
 .reward-copy h1 span {
-  color: #3fa34d;
+  color: #1fcb4f;
 }
 .journey-trail [aria-current="step"] > span {
-  background: #3fa34d;
+  background: #1fcb4f;
   border-color: var(--ink);
 }
 .journey-trail li > span {
   border-width: 3px;
 }
 progress::-webkit-progress-value {
-  background: #3fa34d;
+  background: #1fcb4f;
 }
 progress::-moz-progress-bar {
-  background: #3fa34d;
+  background: #1fcb4f;
 }
 progress {
   height: 12px;
@@ -2798,7 +2798,7 @@ progress {
   gap: 12px;
   margin: 0 -40px 8px;
   padding: 10px 40px;
-  background: #fff6e5;
+  background: #fff4d9;
   border-bottom: var(--outline-thin);
 }
 .app-topbar .brand {
@@ -2810,7 +2810,7 @@ progress {
   padding: 0;
   font-size: 30px;
   font-weight: 800;
-  color: #3fa34d;
+  color: #1fcb4f;
 }
 .brand-lulo {
   display: inline-flex;
@@ -2886,7 +2886,7 @@ progress {
   padding: 8px 14px;
   border: var(--outline-thin);
   border-radius: 16px 16px 16px 4px;
-  background: #ffc93c;
+  background: #ffc21a;
   font-weight: 800;
   font-size: 15px;
 }
@@ -2913,7 +2913,7 @@ progress {
   outline: none;
 }
 .ask-form .topic-input:focus-within {
-  border-color: #14a3b8;
+  border-color: #00b8d9;
 }
 .ask-form .mic-button {
   min-width: 60px;
@@ -2936,7 +2936,7 @@ progress {
   padding: 6px 16px;
   border: var(--outline-thin);
   border-radius: 999px;
-  background: #fff6e5;
+  background: #fff4d9;
   color: var(--ink);
   font-family: var(--font-display), system-ui, sans-serif;
   font-weight: 800;
@@ -2948,7 +2948,7 @@ progress {
   box-shadow: none;
 }
 .chip-surprise {
-  background: #14a3b8;
+  background: #00b8d9;
   color: #fff;
 }
 
@@ -3008,7 +3008,7 @@ progress {
 }
 .tab-button[aria-current="page"] {
   border-color: var(--ink);
-  background: #3fa34d;
+  background: #1fcb4f;
   color: #fff;
 }
 
@@ -3147,4 +3147,301 @@ progress {
   .drawer {
     padding: 20px;
   }
+}
+
+/* ---------------------------------------------------------------------------
+   Lulo: vivid colors on black, bold titles and playful motion.
+   --------------------------------------------------------------------------- */
+:root {
+  --green: #1fcb4f;
+  --sea: #00b8d9;
+  --mango: #ffc21a;
+  --coral: #ff5247;
+}
+body {
+  color: var(--ink);
+}
+
+/* Black text on every bright surface: the strongest contrast and the signature look. */
+.primary-button,
+.tutor-launch,
+.chip-surprise,
+.mic-button,
+.tab-button[aria-current="page"],
+.trail-reached > span,
+.journey-trail [aria-current="step"] > span {
+  color: var(--ink);
+}
+.primary-button svg,
+.tutor-launch svg {
+  stroke-width: 2.6;
+}
+.chip-surprise {
+  background: var(--sea);
+}
+.star-counter {
+  background: var(--mango);
+}
+.greeting-bubble {
+  background: var(--mango);
+}
+.topic-chip:nth-child(1) {
+  background: #d9f8e1;
+}
+.topic-chip:nth-child(2) {
+  background: #d6f5fb;
+}
+.topic-chip:nth-child(3) {
+  background: #ffedb8;
+}
+
+/* Titles: heavy Baloo with a hard offset shadow, like a sticker. */
+h1,
+h2 {
+  font-weight: 800;
+  letter-spacing: -0.5px;
+}
+.greeting-card h1,
+.reward-copy h1,
+.learning-card h1,
+.drawer h2,
+.explore-section h2,
+.suggestion-section h2 {
+  text-shadow: 3px 3px 0 var(--mango);
+}
+.greeting-card h1 {
+  font-size: clamp(28px, 3.6vw, 40px);
+}
+.reward-copy h1 span,
+.welcome-copy h1 span {
+  color: var(--ink);
+  background: var(--green);
+  padding: 0 10px;
+  border-radius: 10px;
+  text-shadow: none;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+.app-topbar .brand {
+  color: var(--green);
+  -webkit-text-stroke: 1.5px var(--ink);
+  paint-order: stroke fill;
+  text-shadow: 3px 3px 0 var(--ink);
+  letter-spacing: 0.5px;
+}
+.topic-copy h3 {
+  font-weight: 800;
+}
+
+/* Motion: entrances, an idle Lulo, springy controls. */
+@keyframes lulo-pop-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes lulo-bob {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-6px) rotate(-2deg);
+  }
+}
+@keyframes lulo-wiggle {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(-3deg);
+  }
+  75% {
+    transform: rotate(3deg);
+  }
+}
+@keyframes lulo-burst {
+  0% {
+    transform: scale(0.4);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.15);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.greeting-card,
+.resume-banner,
+.drawer,
+.learning-card,
+.reward-copy,
+.reward-portrait {
+  animation: lulo-pop-in 0.45s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+}
+.topic-grid > *,
+.suggestion-grid > *,
+.quick-topics > * {
+  animation: lulo-pop-in 0.45s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+}
+.topic-grid > :nth-child(2),
+.suggestion-grid > :nth-child(2),
+.quick-topics > :nth-child(2) {
+  animation-delay: 0.06s;
+}
+.topic-grid > :nth-child(3),
+.suggestion-grid > :nth-child(3),
+.quick-topics > :nth-child(3) {
+  animation-delay: 0.12s;
+}
+.topic-grid > :nth-child(4),
+.quick-topics > :nth-child(4) {
+  animation-delay: 0.18s;
+}
+.learning-companion .lulo-avatar,
+.reward-portrait .lulo-avatar {
+  animation: lulo-bob 3.2s ease-in-out infinite;
+}
+.greeting-bubble {
+  transform-origin: bottom left;
+}
+.earned-stars {
+  animation: lulo-burst 0.6s 0.3s cubic-bezier(0.2, 0.9, 0.3, 1.4) both;
+}
+
+.primary-button,
+.secondary-button,
+.soft-button,
+.compact-button,
+.topic-chip,
+.header-button,
+.icon-button,
+.tab-button {
+  transition: transform 0.12s ease, box-shadow 0.12s ease, background-color 0.15s ease;
+}
+@media (hover: hover) {
+  .primary-button:hover:not(:disabled),
+  .secondary-button:hover:not(:disabled),
+  .topic-chip:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 0 var(--ink);
+  }
+  .topic-tile:hover {
+    transform: translateY(-4px) rotate(-0.6deg);
+  }
+  .suggestion-card:hover {
+    transform: translateY(-3px);
+  }
+}
+.tab-button[aria-current="page"] svg {
+  animation: lulo-wiggle 0.4s ease-in-out 1;
+}
+
+/* Respect the device setting and the in-app "Sin animaciones" switch. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+.app-shell[data-reduce-motion="true"] *,
+.app-shell[data-reduce-motion="true"] *::before,
+.app-shell[data-reduce-motion="true"] *::after {
+  animation: none !important;
+  transition: none !important;
+}
+
+/* Lulo's greeting (motion runs in components/LuloGreeter.tsx) */
+.greeting-lulo {
+  display: flex;
+  align-items: flex-end;
+}
+.lulo-greeter {
+  position: relative;
+  display: grid;
+  place-items: end center;
+}
+.greeter-body {
+  position: relative;
+  z-index: 1;
+  border: 0;
+  padding: 0;
+  background: none;
+  transform-origin: 50% 100%;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.greeter-body:focus-visible {
+  outline: 3px solid var(--sea);
+  outline-offset: 6px;
+  border-radius: 20px;
+}
+.greeter-halo {
+  position: absolute;
+  inset: 8% -8% 6%;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 55%, color-mix(in srgb, var(--greeter-halo) 55%, transparent) 0%, color-mix(in srgb, var(--greeter-halo) 18%, transparent) 55%, transparent 72%);
+  opacity: 0.8;
+}
+.greeter-shadow {
+  position: absolute;
+  bottom: -4px;
+  left: 18%;
+  right: 18%;
+  height: 14px;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(13, 13, 13, 0.35), transparent 70%);
+  opacity: 0.55;
+}
+.lulo-greeter[data-state="disabled"] .greeter-body {
+  filter: grayscale(0.6);
+  opacity: 0.6;
+  cursor: default;
+}
+.greeter-word {
+  display: inline-block;
+}
+
+@media (max-width: 640px) {
+  /* Phones: Lulo and his bubble share the first row; the rest of the card goes below. */
+  .greeting-card {
+    grid-template-columns: 96px minmax(0, 1fr);
+    grid-template-areas: "lulo bubble";
+    column-gap: 10px;
+  }
+  .greeting-body {
+    display: contents;
+  }
+  .greeting-lulo {
+    display: flex;
+    grid-area: lulo;
+    margin-bottom: 0;
+  }
+  .greeting-bubble {
+    grid-area: bubble;
+    align-self: center;
+  }
+  .greeting-body > :not(.greeting-bubble) {
+    grid-column: 1 / -1;
+  }
+}
+@media (max-width: 640px) {
+  .greeting-lulo .lulo-greeter,
+  .greeting-lulo .lulo-avatar {
+    width: 96px !important;
+  }
+}
+/* The bubble waits hidden until Lulo lands; Motion's inline styles take over from there. */
+.greeting-card:has(.lulo-greeter[data-state="intro"]) .greeting-bubble {
+  opacity: 0;
 }
