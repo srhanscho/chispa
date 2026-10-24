@@ -1,0 +1,164 @@
+{
+  "schema_version": "1.0",
+  "project": "Chispa",
+  "character_id": "chispa-lulo",
+  "type": "Rive design and runtime integration plan — not a .riv export",
+  "recommended_setup": {
+    "file_name": "lulo.riv",
+    "artboard": "LuloMascot",
+    "state_machine": "LuloController",
+    "preferred_runtime_interface": "Data Binding (View Model) where supported",
+    "view_model_proposal": {
+      "name": "LuloState",
+      "properties": [
+        {
+          "name": "scene",
+          "type": "string",
+          "example": "home"
+        },
+        {
+          "name": "isSpeaking",
+          "type": "boolean",
+          "example": false
+        },
+        {
+          "name": "isLoading",
+          "type": "boolean",
+          "example": false
+        },
+        {
+          "name": "celebrateSignal",
+          "type": "trigger_or_equivalent",
+          "example": "fire when reward earned"
+        }
+      ],
+      "note": "Las propiedades son un CONTRATO PROPUESTO, no un esquema JSON importable por el editor."
+    }
+  },
+  "states": [
+    {
+      "id": "home",
+      "visual": "idle + wave on entrance",
+      "animation": "idle"
+    },
+    {
+      "id": "loading",
+      "visual": "thinking",
+      "animation": "thinking"
+    },
+    {
+      "id": "lesson",
+      "visual": "explain, combine with talking when speaking",
+      "animation": "explain"
+    },
+    {
+      "id": "quiz",
+      "visual": "quiz_prompt then idle",
+      "animation": "quiz_prompt"
+    },
+    {
+      "id": "encourage",
+      "visual": "reassure, then explain",
+      "animation": "reassure"
+    },
+    {
+      "id": "reward",
+      "visual": "celebrate once then idle",
+      "animation": "celebrate"
+    }
+  ],
+  "frontend_event_mapping": [
+    {
+      "ui_event": "APP_READY",
+      "scene": "home",
+      "animation": "wave"
+    },
+    {
+      "ui_event": "LESSON_REQUESTED",
+      "scene": "loading",
+      "animation": "thinking"
+    },
+    {
+      "ui_event": "LESSON_CARD_SHOWN",
+      "scene": "lesson",
+      "animation": "explain"
+    },
+    {
+      "ui_event": "SPEECH_STARTED",
+      "effect": "start talking animation / set isSpeaking=true"
+    },
+    {
+      "ui_event": "SPEECH_ENDED",
+      "effect": "stop talking animation / set isSpeaking=false"
+    },
+    {
+      "ui_event": "QUIZ_STARTED",
+      "scene": "quiz",
+      "animation": "quiz_prompt"
+    },
+    {
+      "ui_event": "CHILD_NEEDS_HELP",
+      "scene": "encourage",
+      "animation": "reassure"
+    },
+    {
+      "ui_event": "REWARD_EARNED",
+      "scene": "reward",
+      "animation": "celebrate"
+    }
+  ],
+  "asset_checklist": [
+    {
+      "file": "lulo_referencia_original.png",
+      "status": "included",
+      "purpose": "Referencia visual; no es arte desglosado para rig"
+    },
+    {
+      "file": "lulo_layers.svg",
+      "status": "to_create",
+      "purpose": "Vectorizar y separar cabeza, boca, ojos, brazos, cola, sombrero, etc."
+    },
+    {
+      "file": "lulo.riv",
+      "status": "to_create_in_rive",
+      "purpose": "Rig + timelines + State Machine"
+    },
+    {
+      "file": "lulo_home.png",
+      "status": "to_generate",
+      "purpose": "Pose estática de inicio"
+    },
+    {
+      "file": "lulo_loading.png",
+      "status": "to_generate",
+      "purpose": "Pose estática de carga"
+    },
+    {
+      "file": "lulo_lesson.png",
+      "status": "to_generate",
+      "purpose": "Pose estática de clase"
+    },
+    {
+      "file": "lulo_quiz.png",
+      "status": "to_generate",
+      "purpose": "Pose estática de trivia"
+    },
+    {
+      "file": "lulo_encourage.png",
+      "status": "to_generate",
+      "purpose": "Pose estática de re-explicación"
+    },
+    {
+      "file": "lulo_reward.png",
+      "status": "to_generate",
+      "purpose": "Pose estática de recompensa"
+    }
+  ],
+  "dev_notes_es": [
+    "Primero aprobar diseño y seis expresiones; después preparar piezas animables.",
+    "En Rive, crear el artboard y el rig a partir de piezas separadas; vincular el estado del personaje al front mediante Data Binding.",
+    "La animación hablada puede encenderse y apagarse usando eventos de speechSynthesis; no prometemos sincronización labial exacta en la primera versión.",
+    "Exportar .riv para la app; GIF/WebM solo para demos sin interacción.",
+    "No enviar perfiles infantiles completos a Rive; solo el estado visual necesario."
+  ]
+}

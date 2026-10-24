@@ -2,7 +2,21 @@
 
 Chispa is an AI tutor for kids aged 6–10. A child says what they want to learn ("¡dinosaurios!"), and Lulo, a curious young iguana from Barranquilla, builds a short lesson with pictures, reads it aloud, and ends with a quiz. An adaptive engine learns **how each child learns** and changes the teaching style of the next lesson.
 
-Built for Hacktoberfest Barranquilla 2026. All text and reasoning run on **Gemma 4** through the Gemini API.
+Built for Hacktoberfest Barranquilla 2026. The backend supports **Gemma 4** through the Gemini API. The current frontend opens a local demo by default, without provider calls or API keys.
+
+## Frontend de Lulo
+
+La imagen oficial del ZIP está en `public/assets/lulo/`. El recorrido demo usa cinco tarjetas de Dinosaurios, tres preguntas, lectura opcional, ayuda con ejemplos alternativos, estrellas y álbum. Planetas y Animales aparecen como próximos contenidos. El tema escrito abre Dinosaurios y la interfaz lo indica.
+
+`lib/lesson-service.ts` separa el mock del adaptador HTTP. Para utilizar las rutas existentes, establece `NEXT_PUBLIC_LESSON_SOURCE=http` antes de compilar y configura las variables privadas de `.env.example`. El modo demo no activa el motor adaptativo; el panel adulto muestra únicamente contadores, sin diagnósticos. Los cambios recientes de configuración y rendimiento de Gemma se conservan.
+
+Los JSON originales se guardan en `docs/lulo/especificaciones/`. `lib/lulo.ts` usa su mapa de eventos para cambiar entre inicio, carga, clase, trivia, apoyo y premio. `LuloAvatar` muestra el PNG original con movimientos CSS suaves y respeta `prefers-reduced-motion`. La voz actualiza un indicador al empezar, terminar, fallar o cancelarse. No hay sincronización labial, seis poses nuevas ni un archivo `.riv`: esas piezas siguen pendientes del diseño y rig de Rive.
+
+Solo se guardan contadores y nombres de stickers en `localStorage` (`chispa:lulo-progress:v1`). Si el navegador bloquea el almacenamiento, la sesión funciona en memoria. No se solicitan nombres ni fotos. El dictado opcional depende del servicio de reconocimiento del navegador; escribir el tema siempre está disponible.
+
+Para probar: `npm ci`, `npm run dev`, `npm run lint`, `npm test`, `npm run build`. No hacen falta claves para la demo. Las fuentes Baloo 2 y Nunito necesitan conexión durante la compilación inicial. Los visuales educativos y el sticker son placeholders locales; Lulo utiliza la imagen oficial con su fondo claro original.
+
+Si el equipo corporativo bloquea terminales, usa un entorno autorizado o importa el repositorio desde la interfaz web de Vercel, seleccionando Next.js y sus valores predeterminados. La demo no requiere variables de entorno. Primero hay que subir a GitHub los cambios locales para que Vercel los reciba.
 
 ## How it works
 
@@ -25,7 +39,7 @@ cp .env.example .env.local   # add GEMINI_API_KEY and OPENAI_API_KEY
 npm run dev
 ```
 
-Open http://localhost:3000. Without a `GEMINI_API_KEY` the app serves the cached demo lesson in `public/demo/dinosaurios.json`, so the UI works from the first minute.
+Open http://localhost:3000. The frontend demo uses the supplied fixture in `docs/lulo/demo/lesson_dinosaurios.json`. In HTTP mode, the existing backend falls back to `public/demo/dinosaurios.json` when no `GEMINI_API_KEY` is configured.
 
 ```bash
 npm test        # unit tests for the engine, JSON parsing and Wikimedia parsing

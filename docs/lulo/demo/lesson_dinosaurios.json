@@ -1,0 +1,100 @@
+{
+  "topic": "Dinosaurios",
+  "style": "story",
+  "level": "explorer",
+  "cover": {
+    "kind": "illustration",
+    "query": "Lulo the friendly green iguana explorer learns about dinosaurs"
+  },
+  "cards": [
+    {
+      "title": "¡Vamos al pasado!",
+      "text": "Los dinosaurios vivieron hace muchísimo tiempo. Eran animales de distintas formas y tamaños.",
+      "speech": "¡Ajá! Los dinosaurios vivieron hace muchísimo tiempo. ¡Vamos a conocerlos!",
+      "image": {
+        "kind": "photo",
+        "query": "dinosaur skeleton natural history museum"
+      }
+    },
+    {
+      "title": "Un gigante famoso",
+      "text": "El T-Rex fue un dinosaurio grande con dientes afilados. Vivió en lo que hoy es América del Norte.",
+      "speech": "¡Qué chévere! El T-Rex fue un dinosaurio grande con dientes afilados.",
+      "image": {
+        "kind": "photo",
+        "query": "Tyrannosaurus rex museum skeleton"
+      }
+    },
+    {
+      "title": "¿Qué comía?",
+      "text": "El T-Rex comía carne. Sus dientes le ayudaban a arrancar trozos de alimento.",
+      "speech": "El T-Rex comía carne. Sus dientes le ayudaban a alimentarse.",
+      "image": {
+        "kind": "photo",
+        "query": "Tyrannosaurus rex skull fossil"
+      }
+    },
+    {
+      "title": "No todos eran iguales",
+      "text": "Algunos dinosaurios comían plantas. Otros comían carne, y algunos eran muy pequeños.",
+      "speech": "¿Sabías que no todos comían lo mismo? Algunos preferían plantas.",
+      "image": {
+        "kind": "illustration",
+        "query": "friendly size comparison of plant-eating and meat-eating dinosaurs"
+      }
+    },
+    {
+      "title": "Los fósiles nos cuentan historias",
+      "text": "Los científicos estudian fósiles para conocer a los dinosaurios. ¡Cada hueso puede revelar una pista!",
+      "speech": "¡Ey, mira! Los fósiles ayudan a descubrir cómo vivían los dinosaurios.",
+      "image": {
+        "kind": "photo",
+        "query": "paleontologist dinosaur fossil excavation"
+      }
+    }
+  ],
+  "quiz": [
+    {
+      "question": "¿Qué comía el T-Rex?",
+      "options": [
+        "Solo hojas",
+        "Carne",
+        "Solo frutas"
+      ],
+      "answerIndex": 1,
+      "hint": "Recuerda sus dientes afilados.",
+      "reexplain": "¡Casi! El T-Rex comía carne y usaba sus dientes afilados para alimentarse."
+    },
+    {
+      "question": "¿Qué estudian los científicos para conocer a los dinosaurios?",
+      "options": [
+        "Fósiles",
+        "Cohetes",
+        "Teléfonos"
+      ],
+      "answerIndex": 0,
+      "hint": "Son pistas del pasado.",
+      "reexplain": "¡Mira esta pista! Los fósiles son restos o huellas antiguas que nos ayudan a saber cómo eran."
+    },
+    {
+      "question": "¿Todos los dinosaurios comían lo mismo?",
+      "options": [
+        "Sí, todos plantas",
+        "Sí, todos carne",
+        "No, tenían dietas diferentes"
+      ],
+      "answerIndex": 2,
+      "hint": "Algunos eran herbívoros y otros carnívoros.",
+      "reexplain": "¡Casi! Había dinosaurios que comían plantas y otros que comían carne."
+    }
+  ],
+  "sticker": {
+    "name": "Explorador de dinosaurios",
+    "query": "cute friendly dinosaur sticker"
+  },
+  "_meta": {
+    "kind": "frontend_mock",
+    "real_images_included": false,
+    "instruction": "Los campos image.query son sugerencias de búsqueda futuras, no URLs; mostrar placeholder atractivo mientras no haya imagen real."
+  }
+}

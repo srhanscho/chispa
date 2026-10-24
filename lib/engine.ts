@@ -50,7 +50,7 @@ const clamp = (value: number, min: number, max: number) => Math.min(max, Math.ma
 const byStyle = (value: number) =>
   Object.fromEntries(STYLES.map((style) => [style, value])) as Record<Style, number>;
 
-export function createProfile(name: string, age: number, id = crypto.randomUUID()): LearnerProfile {
+export function createProfile(name: string, age: number, id: string = crypto.randomUUID()): LearnerProfile {
   return {
     id,
     name,

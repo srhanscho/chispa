@@ -42,4 +42,5 @@ next-env.d.ts
 
 # local caches
 .cache/
+.pnpm-store/
 !.env.example

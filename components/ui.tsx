@@ -3,12 +3,13 @@
 import { useEffect, useState, type ButtonHTMLAttributes } from "react";
 import type { ImageRequest } from "@/lib/schema";
 import type { ImageResult } from "@/lib/commons";
+import { LuloAvatar } from "./LuloAvatar";
 
 type Tone = "iguana" | "sea" | "mango" | "coral" | "plain";
 
 const TONES: Record<Tone, string> = {
-  iguana: "bg-iguana text-white",
-  sea: "bg-sea text-white",
+  iguana: "bg-[#28743a] text-white",
+  sea: "bg-[#08788a] text-white",
   mango: "bg-mango text-ink",
   coral: "bg-coral text-white",
   plain: "bg-white text-ink",
@@ -22,7 +23,7 @@ export function Button({
   return (
     <button
       {...props}
-      className={`min-h-14 rounded-2xl border-4 border-ink px-5 font-display text-xl font-bold shadow-[0_4px_0_#1F2A44] transition active:translate-y-1 active:shadow-none disabled:opacity-50 ${TONES[tone]} ${className}`}
+      className={`min-h-14 rounded-2xl border border-black/10 px-5 font-display text-xl font-bold shadow-[0_3px_0_#1F2A4420] transition active:translate-y-0.5 active:shadow-none disabled:opacity-50 ${TONES[tone]} ${className}`}
     />
   );
 }
@@ -32,20 +33,6 @@ export function Card({ children, className = "" }: { children: React.ReactNode; 
     <div className={`rounded-3xl border-4 border-ink bg-white p-5 shadow-[0_6px_0_#1F2A44] ${className}`}>
       {children}
     </div>
-  );
-}
-
-// Lulo's artwork is 451x512, so the width follows the height to keep proportions.
-export function Lulo({ size = 96, thinking = false }: { size?: number; thinking?: boolean }) {
-  return (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img
-      src="/lulo.svg"
-      alt="Lulo, el iguano"
-      width={Math.round(size * (451 / 512))}
-      height={size}
-      className={thinking ? "animate-bounce" : ""}
-    />
   );
 }
 
@@ -95,7 +82,7 @@ export function LessonImage({ request, alt }: { request: ImageRequest; alt: stri
           // eslint-disable-next-line @next/next/no-img-element
           <img src={image.url} alt={alt} className="h-full w-full object-cover" />
         ) : (
-          <Lulo size={72} thinking />
+          <LuloAvatar size={72} scene="loading" />
         )}
       </div>
       {image?.credit && (

@@ -6,8 +6,8 @@ const baloo = Baloo_2({ variable: "--font-baloo", subsets: ["latin"] });
 const nunito = Nunito({ variable: "--font-nunito", subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Chispa — aprende con Lulo",
-  description: "Un tutor con IA para niños que aprende cómo aprende cada niño. Hecho con Gemma 4.",
+  title: "Chispa — descubre con Lulo",
+  description: "Pequeñas aventuras, grandes descubrimientos. Aprende con Lulo, tu iguana exploradora del Caribe colombiano.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

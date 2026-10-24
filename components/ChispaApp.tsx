@@ -1,349 +1,171 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { levelFor, pickStyle, recordSession, type LearnerProfile, type SessionLog } from "@/lib/engine";
-import { demoProfiles, loadProfiles, saveProfiles } from "@/lib/profile";
+import { useEffect, useReducer, useRef, useState } from "react";
 import { canListen, listen, speak, stopSpeaking } from "@/lib/speech";
-import type { Lesson, Reexplain } from "@/lib/schema";
-import { Button, Card, LessonImage, Lulo } from "./ui";
+import { initialLuloState, luloReducer } from "@/lib/lulo";
+import { getCardSupport, isDemo, lessonService } from "@/lib/lesson-service";
+import type { Lesson } from "@/lib/schema";
+import { LuloAvatar } from "./LuloAvatar";
+import { Button } from "./ui";
 
 type Stage = "start" | "loading" | "lesson" | "quiz" | "done" | "error";
+type Progress = { stars: number; sessions: number; correct: number; questions: number; help: number; stickers: string[] };
+const EMPTY: Progress = { stars: 0, sessions: 0, correct: 0, questions: 0, help: 0, stickers: [] };
+const STORAGE_KEY = "chispa:lulo-progress:v1";
 
-interface Signals {
-  correct: number;
-  replays: number;
-  confused: number;
-  hintsUsed: number;
-  answerMs: number[];
+function loadProgress(): Progress {
+  try {
+    const value = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "null");
+    if (value && ["stars", "sessions", "correct", "questions", "help"].every((key) => Number.isSafeInteger(value[key]) && value[key] >= 0)
+      && Array.isArray(value.stickers) && value.stickers.every((s: unknown) => typeof s === "string")) return value;
+  } catch { /* Demo works when storage is blocked. */ }
+  return EMPTY;
 }
 
-const emptySignals = (): Signals => ({ correct: 0, replays: 0, confused: 0, hintsUsed: 0, answerMs: [] });
-
-// Clock reads live outside the component so the React compiler treats them as event-time only.
-const nowMs = () => Date.now();
-const nowIso = () => new Date().toISOString();
-
 export default function ChispaApp() {
-  const [profiles, setProfiles] = useState<LearnerProfile[]>(demoProfiles);
-  const [activeId, setActiveId] = useState("demo-sofia");
   const [stage, setStage] = useState<Stage>("start");
   const [topic, setTopic] = useState("");
-  const [listening, setListening] = useState(false);
   const [lesson, setLesson] = useState<Lesson | null>(null);
   const [step, setStep] = useState(0);
-  const [signals, setSignalsState] = useState<Signals>(emptySignals);
-  const [feedback, setFeedback] = useState<Reexplain | null>(null);
+  const [feedback, setFeedback] = useState("");
+  const [selected, setSelected] = useState<number | null>(null);
+  const [answering, setAnswering] = useState(false);
+  const [correct, setCorrect] = useState(0);
+  const [help, setHelp] = useState(0);
+  const [progress, setProgress] = useState<Progress>(EMPTY);
+  const [adultOpen, setAdultOpen] = useState(false);
+  const [albumOpen, setAlbumOpen] = useState(false);
   const [micAvailable, setMicAvailable] = useState(false);
-  const questionShownAt = useRef(0);
-  // The ref holds the live counters; state mirrors it for rendering.
-  const signalsRef = useRef<Signals>(emptySignals());
+  const [voiceAvailable, setVoiceAvailable] = useState(false);
+  const [listening, setListening] = useState(false);
+  const [lulo, dispatch] = useReducer(luloReducer, initialLuloState);
+  const heading = useRef<HTMLHeadingElement>(null);
+  const answerLock = useRef(false);
+  const requestLock = useRef(false);
+  const stopListening = useRef<(() => void) | undefined>(undefined);
 
-  function setSignals(update: Signals | ((s: Signals) => Signals)) {
-    signalsRef.current = typeof update === "function" ? update(signalsRef.current) : update;
-    setSignalsState(signalsRef.current);
-  }
-
-  // localStorage and the speech APIs only exist in the browser, so they load after hydration.
   useEffect(() => {
+    // Read browser capabilities and local counters after hydration.
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setProfiles(loadProfiles());
+    setProgress(loadProgress());
     setMicAvailable(canListen());
+    setVoiceAvailable("speechSynthesis" in window);
+    dispatch("APP_READY");
+    return () => { stopSpeaking(); stopListening.current?.(); };
   }, []);
 
-  const profile = profiles.find((p) => p.id === activeId) ?? profiles[0];
+  useEffect(() => { heading.current?.focus(); }, [stage, step]);
 
-  function updateProfile(next: LearnerProfile) {
-    const all = profiles.map((p) => (p.id === next.id ? next : p));
-    setProfiles(all);
-    saveProfiles(all);
+  function read(text: string) {
+    speak(text, (speaking) => dispatch(speaking ? "SPEECH_STARTED" : "SPEECH_ENDED"));
   }
 
   async function startLesson(requested: string) {
-    if (requested.trim().length < 2) return;
-    setStage("loading");
-    setSignals(emptySignals());
-    setStep(0);
-    setFeedback(null);
-    const style = pickStyle(profile);
-    const level = levelFor(profile.mastery[requested] ?? 0);
+    if (requestLock.current || requested.trim().length < 2 || requested.trim().length > 100) return;
+    requestLock.current = true;
+    stopSpeaking(); stopListening.current?.(); setListening(false);
+    setStage("loading"); dispatch("LESSON_REQUESTED");
+    setFeedback(""); setCorrect(0); setHelp(0); setStep(0); setSelected(null);
+    answerLock.current = false;
     try {
-      const res = await fetch("/api/lesson", {
-        method: "POST",
-        body: JSON.stringify({ topic: requested, age: profile.age, style, level }),
-      });
-      if (!res.ok) throw new Error(await res.text());
-      const next = (await res.json()) as Lesson;
-      setLesson(next);
-      setStage("lesson");
-      speak(next.cards[0].speech);
-    } catch (error) {
-      console.error(error);
-      setStage("error");
-    }
+      const next = await lessonService.getLesson({ topic: requested.trim(), age: 8, style: "story", level: "explorer" });
+      setLesson(next); setStage("lesson"); dispatch("LESSON_CARD_SHOWN");
+    } catch { setStage("error"); dispatch("CHILD_NEEDS_HELP"); }
+    finally { requestLock.current = false; }
   }
 
   function onMic() {
-    setListening(true);
-    listen(
-      (text) => {
-        setTopic(text);
-        startLesson(text);
-      },
-      () => setListening(false),
-    );
+    stopSpeaking(); setListening(true);
+    stopListening.current = listen((text) => setTopic(text.slice(0, 100)), () => setListening(false));
   }
 
-  function nextCard() {
-    if (!lesson) return;
-    if (step + 1 < lesson.cards.length) {
-      setStep(step + 1);
-      speak(lesson.cards[step + 1].speech);
-    } else {
-      stopSpeaking();
-      setStep(0);
-      setStage("quiz");
-      questionShownAt.current = nowMs();
-      speak(lesson.quiz[0].question);
-    }
+  function showCard(index: number) {
+    stopSpeaking(); setFeedback(""); setStep(index); dispatch("LESSON_CARD_SHOWN");
   }
 
-  async function answer(optionIndex: number) {
-    if (!lesson || feedback) return;
+  function startQuiz() {
+    stopSpeaking(); setFeedback(""); setStep(0); setStage("quiz"); dispatch("QUIZ_STARTED");
+  }
+
+  async function answer(index: number) {
+    if (!lesson || answerLock.current) return;
+    answerLock.current = true;
+    stopSpeaking(); setAnswering(true); setSelected(index);
     const question = lesson.quiz[step];
-    const isCorrect = optionIndex === question.answerIndex;
-    const elapsed = nowMs() - questionShownAt.current;
-    setSignals((s) => ({ ...s, correct: s.correct + (isCorrect ? 1 : 0), answerMs: [...s.answerMs, elapsed] }));
-
-    if (isCorrect) {
-      speak("¡Qué chévere, muy bien!");
-      goToNextQuestion();
-      return;
-    }
-    const res = await fetch("/api/reexplain", {
-      method: "POST",
-      body: JSON.stringify({
-        question: question.question,
-        chosen: question.options[optionIndex],
-        correct: question.options[question.answerIndex],
-        style: lesson.style,
-        age: profile.age,
-      }),
-    });
-    const explanation: Reexplain = res.ok
-      ? await res.json()
-      : { text: `¡Casi! Era "${question.options[question.answerIndex]}".`, speech: "¡Casi! Vamos con la siguiente." };
-    setFeedback(explanation);
-    speak(explanation.speech);
-  }
-
-  function goToNextQuestion() {
-    if (!lesson) return;
-    setFeedback(null);
-    if (step + 1 < lesson.quiz.length) {
-      setStep(step + 1);
-      questionShownAt.current = nowMs();
-      speak(lesson.quiz[step + 1].question);
+    if (index === question.answerIndex) {
+      setCorrect((value) => value + 1);
+      setFeedback("¡Qué chévere! Descubriste la respuesta. Sigamos explorando.");
     } else {
-      finish(true);
+      dispatch("CHILD_NEEDS_HELP");
+      try { setFeedback((await lessonService.getReexplanation(lesson, step, index)).text); }
+      catch { setFeedback(`¡Casi! La respuesta es «${question.options[question.answerIndex]}». Vamos a aprenderlo juntos.`); }
     }
+    setAnswering(false);
   }
 
-  function finish(completed: boolean) {
+  function nextQuestion() {
     if (!lesson) return;
     stopSpeaking();
-    const s = signalsRef.current;
-    const session: SessionLog = {
-      topic: lesson.topic,
-      style: lesson.style,
-      correct: s.correct,
-      total: lesson.quiz.length,
-      avgAnswerMs: s.answerMs.length ? s.answerMs.reduce((a, b) => a + b, 0) / s.answerMs.length : 0,
-      replays: s.replays,
-      confused: s.confused,
-      hintsUsed: s.hintsUsed,
-      completed,
-      at: nowIso(),
-    };
-    const stars = (completed ? 1 : 0) + s.correct;
-    updateProfile({ ...recordSession(profile, session), stars: profile.stars + stars });
-    setStage(completed ? "done" : "start");
+    if (step + 1 < lesson.quiz.length) {
+      setStep(step + 1); setSelected(null); setFeedback(""); answerLock.current = false; dispatch("QUIZ_STARTED");
+    } else {
+      const next: Progress = { stars: progress.stars + 1 + correct, sessions: progress.sessions + 1,
+        correct: progress.correct + correct, questions: progress.questions + lesson.quiz.length,
+        help: progress.help + help, stickers: [...new Set([...progress.stickers, lesson.sticker.name])] };
+      setProgress(next);
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(next)); } catch { /* Keep in-memory progress. */ }
+      setStage("done"); dispatch("REWARD_EARNED");
+    }
   }
 
+  function home() {
+    stopSpeaking(); stopListening.current?.(); setListening(false);
+    setStage("start"); setFeedback(""); setTopic(""); dispatch("APP_READY");
+  }
+
+  const card = lesson?.cards[step];
+  const question = lesson?.quiz[step];
+  const active = stage === "lesson" || stage === "quiz";
+
   return (
-    <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-5 px-4 py-6">
-      <header className="flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <Lulo size={56} />
-          <h1 className="text-3xl font-bold text-iguana">Chispa</h1>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="rounded-full border-4 border-ink bg-mango px-3 py-1 font-display font-bold">
-            ⭐ {profile.stars}
-          </span>
-          <select
-            aria-label="Niño"
-            value={activeId}
-            onChange={(e) => setActiveId(e.target.value)}
-            className="rounded-xl border-4 border-ink bg-white px-2 py-1 font-display"
-          >
-            {profiles.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.name}
-              </option>
-            ))}
-          </select>
-        </div>
+    <main className="app-shell">
+      <a className="skip-link" href="#adventure">Saltar a la aventura</a>
+      <header className="app-header">
+        <button className="brand" onClick={home} disabled={stage === "loading" || answering} aria-label="Chispa, volver al inicio"><span className="brand-spark" aria-hidden="true">✳</span> chispa<span className="brand-dot">.</span></button>
+        <nav aria-label="Mi espacio" className="header-actions">
+          <span className="star-counter" aria-label={`${progress.stars} estrellas`}>★ <span>{progress.stars}</span></span>
+          <button className="quiet-button" aria-expanded={albumOpen} onClick={() => setAlbumOpen(!albumOpen)}>Mi álbum</button>
+          <button className="quiet-button adult-toggle" aria-expanded={adultOpen} onClick={() => setAdultOpen(!adultOpen)}>Para adultos</button>
+        </nav>
       </header>
+      {albumOpen && <section className="drawer" aria-label="Mi álbum"><h2>Mi álbum de descubrimientos</h2><p>{progress.stickers.length ? progress.stickers.join(" · ") : "Tu primer sticker te espera al terminar una aventura."}</p></section>}
+      {adultOpen && <section className="drawer adult-panel" aria-label="Panel adulto demo"><p className="eyebrow">ACOMPAÑAMIENTO · DEMO LOCAL</p><h2>Cada descubrimiento cuenta</h2><div className="stat-grid"><p><strong>{progress.sessions}</strong>Aventuras completadas</p><p><strong>{progress.correct}/{progress.questions}</strong>Respuestas acertadas</p><p><strong>{progress.help}</strong>Ayudas solicitadas</p></div><p>Estos contadores describen la actividad de esta demo. No son un diagnóstico ni determinan cómo aprende un niño. Se guardan solo en este navegador.</p></section>}
 
-      {stage === "start" && (
-        <Card className="flex flex-col gap-4">
-          <h2 className="text-2xl font-bold">¡Hola, {profile.name}! ¿Qué quieres aprender hoy?</h2>
-          <form
-            className="flex flex-col gap-3 sm:flex-row"
-            onSubmit={(e) => {
-              e.preventDefault();
-              startLesson(topic);
-            }}
-          >
-            <input
-              value={topic}
-              onChange={(e) => setTopic(e.target.value)}
-              placeholder="Dinosaurios, planetas, el mar..."
-              className="min-h-14 flex-1 rounded-2xl border-4 border-ink px-4 text-xl"
-            />
-            <Button type="submit">¡Vamos!</Button>
-          </form>
-          {micAvailable && (
-            <Button tone="sea" onClick={onMic} disabled={listening}>
-              {listening ? "Te escucho..." : "🎤 Dímelo hablando"}
-            </Button>
-          )}
-          <EngineSummary profile={profile} />
-        </Card>
-      )}
+      <div id="adventure" className="adventure">
+        {stage === "start" && <>
+          <section className="welcome-grid">
+            <div className="welcome-copy"><p className="eyebrow"><span className="tiny-spark">✦</span> LA CURIOSIDAD ES EL COMIENZO</p><h1 ref={heading} tabIndex={-1}>Pequeñas preguntas.<br /><span>Grandes aventuras.</span></h1><p className="intro">¡Hola! Soy Lulo, tu compañero de descubrimientos. ¿Qué vamos a explorar juntos hoy?</p><form className="topic-form" onSubmit={(event) => { event.preventDefault(); startLesson(topic); }}><label htmlFor="topic">Quiero aprender sobre…</label><div className="topic-input"><input id="topic" value={topic} minLength={2} maxLength={100} required onChange={(event) => setTopic(event.target.value)} placeholder="Dinosaurios, planetas, el mar…" />{micAvailable && <button type="button" className="mic-button" onClick={onMic} disabled={listening} aria-label="Dictar el tema">{listening ? "•••" : "🎙"}</button>}</div><Button type="submit" disabled={topic.trim().length < 2}>¡Vamos a descubrir! <span aria-hidden="true">↗</span></Button></form><p className="form-help" role="status">{listening ? "Te escucho. Después puedes revisar el texto." : isDemo ? "Demo sin claves: cualquier tema abre la aventura de Dinosaurios." : "Elige un tema y prepara tu próxima aventura."}</p>{!micAvailable && <p className="form-help">Puedes escribir tu idea; este navegador no admite dictado.</p>}</div>
+            <div className="mascot-world"><span className="world-orbit" aria-hidden="true" /><span className="floating-note">¡Aprendamos algo chévere!</span><LuloAvatar size={320} /><span className="mascot-caption">LULO <span>Tu amigo explorador</span></span></div>
+          </section>
+          <section className="explore-section" aria-label="Ideas para explorar"><div className="section-heading"><h2>Una idea para empezar</h2><span>Elige tu próxima aventura</span></div><div className="topic-grid">{[{ icon: "🦕", title: "Dinosaurios", caption: "Un viaje a un mundo gigante", tone: "mint" }, { icon: "🪐", title: "Planetas", caption: "Próximamente en la demo", tone: "lavender" }, { icon: "🐋", title: "Animales", caption: "Próximamente en la demo", tone: "peach" }].map((item) => <button key={item.title} className={`topic-tile ${item.tone}`} disabled={isDemo && item.title !== "Dinosaurios"} onClick={() => { setTopic(item.title); startLesson(item.title); }}><span className="topic-icon" aria-hidden="true">{item.icon}</span><span><strong>{item.title}</strong><small>{isDemo ? item.caption : "Una nueva aventura por descubrir"}</small></span><span aria-hidden="true">↗</span></button>)}</div></section>
+          <div className="journey-strip"><span>01 <strong>Descubre</strong></span><span aria-hidden="true">····</span><span>02 <strong>Juega y aprende</strong></span><span aria-hidden="true">····</span><span>03 <strong>Colecciona logros</strong></span></div>
+        </>}
 
-      {stage === "loading" && (
-        <Card className="flex flex-col items-center gap-3 text-center">
-          <Lulo size={120} thinking />
-          <p className="font-display text-2xl">Lulo está preparando tu clase...</p>
-        </Card>
-      )}
+        {stage === "loading" && <section className="center-stage" aria-busy="true"><LuloAvatar scene="loading" /><p className="eyebrow">UNA AVENTURA EN CAMINO</p><h1 ref={heading} tabIndex={-1}>Estoy preparando algo chévere para ti…</h1><p role="status">Buscando grandes descubrimientos para pequeñas preguntas.</p></section>}
+        {stage === "error" && <section className="center-stage"><LuloAvatar scene="encourage" /><h1 ref={heading} tabIndex={-1}>¡Uy! Nos enredamos un poquito.</h1><p role="alert">Podemos volver a intentarlo juntos.</p><Button onClick={() => startLesson(topic)}>Intentar de nuevo</Button><button className="quiet-button" onClick={home}>Volver al inicio</button></section>}
 
-      {stage === "error" && (
-        <Card className="flex flex-col items-center gap-3 text-center">
-          <Lulo size={96} />
-          <p className="font-display text-2xl">¡Ay! Lulo se enredó. ¿Lo intentamos otra vez?</p>
-          <Button onClick={() => setStage("start")}>Volver</Button>
-        </Card>
-      )}
+        {active && lesson && <section className="learning-layout"><aside className="learning-companion"><p className="eyebrow">TU COMPAÑERO DE AVENTURA</p><LuloAvatar scene={lulo.scene} isSpeaking={lulo.isSpeaking} size={220} /><p className="companion-note">{lulo.scene === "encourage" ? "Vamos a mirarlo de otra forma. ¡Tú puedes!" : stage === "quiz" ? "Tómate tu tiempo. Estoy contigo." : "Cada pregunta nos lleva a un descubrimiento."}</p><button className="quiet-button" onClick={home} disabled={answering}>Salir de la aventura</button></aside><div className="lesson-panel"><div className="lesson-topline"><span>{stage === "lesson" ? lesson.topic : "Juega con lo que aprendiste"}</span><span>{step + 1} / {stage === "lesson" ? lesson.cards.length : lesson.quiz.length}</span></div><progress aria-label={stage === "lesson" ? "Progreso de la clase" : "Progreso de la trivia"} value={step + 1} max={stage === "lesson" ? lesson.cards.length : lesson.quiz.length} />
+          {stage === "lesson" && card && <><p className="eyebrow">DESCUBRIMIENTO {String(step + 1).padStart(2, "0")}</p><h1 ref={heading} tabIndex={-1}>{card.title}</h1><LessonVisual index={step} title={card.title} demo={isDemo} /><p className="lesson-text">{card.text}</p><div className="lesson-tools"><button className="tool-button" disabled={!voiceAvailable} onClick={() => read(card.speech)}>♪ Escuchar</button><button className="tool-button" onClick={() => { setFeedback(""); dispatch("LESSON_CARD_SHOWN"); if (voiceAvailable) read(card.speech); }}>↻ Otra vez</button><button className="tool-button" onClick={() => { setHelp(help + 1); dispatch("CHILD_NEEDS_HELP"); setFeedback(getCardSupport(lesson, step)); }}>♡ No entendí</button></div>{!voiceAvailable && <p className="form-help">La lectura en voz alta no está disponible. Puedes leer el texto.</p>}{feedback && <p className="feedback" role="status">{feedback}</p>}<div className="lesson-navigation"><Button tone="plain" disabled={step === 0} onClick={() => showCard(step - 1)}>← Anterior</Button><Button onClick={() => step + 1 < lesson.cards.length ? showCard(step + 1) : startQuiz()}>{step + 1 < lesson.cards.length ? "Siguiente →" : "¡A la trivia! →"}</Button></div></>}
+          {stage === "quiz" && question && <><p className="eyebrow">TU TURNO DE EXPLORAR</p><h1 ref={heading} tabIndex={-1}>{question.question}</h1><p className="quiz-intro">Elige una respuesta. Aquí también aprendemos al intentar.</p><div className="answer-options">{question.options.map((option, index) => <button key={option} className={`answer-option ${selected === index ? "is-selected" : ""} ${selected !== null && !answering && index === question.answerIndex ? "is-correct" : ""}`} disabled={selected !== null} onClick={() => answer(index)}><span className="option-letter">{String.fromCharCode(65 + index)}</span>{option}{selected !== null && !answering && index === question.answerIndex && <span aria-label="Respuesta correcta">✓</span>}</button>)}</div><div className="lesson-tools"><button className="tool-button" disabled={!voiceAvailable} onClick={() => read(question.question)}>♪ Escuchar pregunta</button><button className="tool-button" disabled={selected !== null} onClick={() => { setHelp(help + 1); setFeedback(question.hint); dispatch("CHILD_NEEDS_HELP"); }}>✧ Una pista</button></div><div role="status" aria-live="polite">{answering ? <p className="feedback">Veamos esta idea juntos…</p> : feedback && <p className="feedback">{feedback}</p>}</div>{selected !== null && !answering && <Button onClick={nextQuestion}>{step + 1 < lesson.quiz.length ? "Seguir explorando →" : "¡Ver mi premio! →"}</Button>}</>}
+        </div></section>}
 
-      {stage === "lesson" && lesson && (
-        <Card className="flex flex-col gap-4">
-          <p className="text-sm font-bold text-sea">
-            {lesson.topic} · tarjeta {step + 1} de {lesson.cards.length}
-          </p>
-          <h2 className="text-2xl font-bold">{lesson.cards[step].title}</h2>
-          <LessonImage key={lesson.cards[step].image.query} request={lesson.cards[step].image} alt={lesson.cards[step].title} />
-          <p className="text-xl leading-relaxed">{lesson.cards[step].text}</p>
-          <div className="grid grid-cols-2 gap-3">
-            <Button
-              tone="plain"
-              onClick={() => {
-                setSignals((s) => ({ ...s, replays: s.replays + 1 }));
-                speak(lesson.cards[step].speech);
-              }}
-            >
-              🔁 Otra vez
-            </Button>
-            <Button
-              tone="coral"
-              onClick={() => {
-                setSignals((s) => ({ ...s, confused: s.confused + 1 }));
-                speak("¡Tranquilo! Mira el dibujo y lo leemos otra vez.");
-              }}
-            >
-              🤔 No entendí
-            </Button>
-          </div>
-          <Button onClick={nextCard}>{step + 1 < lesson.cards.length ? "Siguiente →" : "¡A la trivia!"}</Button>
-        </Card>
-      )}
-
-      {stage === "quiz" && lesson && (
-        <Card className="flex flex-col gap-4">
-          <p className="text-sm font-bold text-sea">
-            Trivia · pregunta {step + 1} de {lesson.quiz.length}
-          </p>
-          <h2 className="text-2xl font-bold">{lesson.quiz[step].question}</h2>
-          <div className="flex flex-col gap-3">
-            {lesson.quiz[step].options.map((option, i) => (
-              <Button key={option} tone="plain" disabled={!!feedback} onClick={() => answer(i)}>
-                {option}
-              </Button>
-            ))}
-          </div>
-          {!feedback && (
-            <button
-              className="self-start text-sm underline"
-              onClick={() => {
-                setSignals((s) => ({ ...s, hintsUsed: s.hintsUsed + 1 }));
-                speak(lesson.quiz[step].hint);
-              }}
-            >
-              💡 Pista
-            </button>
-          )}
-          {feedback && (
-            <div className="flex flex-col gap-3 rounded-2xl bg-mango/40 p-4">
-              <p className="text-lg">{feedback.text}</p>
-              <Button onClick={goToNextQuestion}>Seguir</Button>
-            </div>
-          )}
-        </Card>
-      )}
-
-      {stage === "done" && lesson && (
-        <Card className="flex flex-col items-center gap-4 text-center">
-          <h2 className="text-3xl font-bold text-iguana">¡Lo lograste!</h2>
-          <p className="text-xl">
-            Acertaste {signals.correct} de {lesson.quiz.length} y ganaste ⭐ {1 + signals.correct}
-          </p>
-          <LessonImage key={lesson.sticker.query} request={{ kind: "illustration", query: lesson.sticker.query }} alt={lesson.sticker.name} />
-          <p className="font-display text-xl">Nuevo sticker: {lesson.sticker.name}</p>
-          <Button onClick={() => setStage("start")}>Aprender otra cosa</Button>
-        </Card>
-      )}
+        {stage === "done" && lesson && <section className="center-stage reward-stage"><p className="eyebrow">OTRA AVENTURA EN TU HISTORIA</p><LuloAvatar scene="reward" size={220} /><h1 ref={heading} tabIndex={-1}>¡Lo lograste, explorador!</h1><p>Descubriste algo nuevo y acertaste {correct} de {lesson.quiz.length} preguntas.</p><div className="earned-stars">★ +{1 + correct} estrellas</div><p className="form-help">Una por participar y una por cada respuesta acertada.</p><div className="reward-sticker"><span aria-hidden="true">🦕</span><strong>{lesson.sticker.name}</strong><small>Ya está en tu álbum</small></div><Button onClick={home}>Descubrir otra aventura ↗</Button><button className="quiet-button" onClick={() => { setAlbumOpen(true); home(); }}>Abrir mi álbum</button></section>}
+      </div>
+      <footer className="app-footer"><span>Hecho con curiosidad y un poquito de Caribe.</span><span>{isDemo ? "Demo interactiva · Aprende a tu ritmo" : "Aprende a tu ritmo con Lulo"}</span></footer>
     </main>
   );
 }
 
-const STYLE_LABELS: Record<string, string> = {
-  story: "Historias",
-  visual: "Visual",
-  analogy: "Analogías",
-  stepByStep: "Paso a paso",
-  game: "Juego",
-};
-
-// Small view of the adaptive engine, so the jury can see why two kids get different lessons.
-function EngineSummary({ profile }: { profile: LearnerProfile }) {
-  return (
-    <details className="rounded-2xl bg-sand p-3">
-      <summary className="cursor-pointer font-display font-bold">Cómo aprende {profile.name}</summary>
-      <ul className="mt-2 flex flex-col gap-1">
-        {Object.entries(profile.styleScores)
-          .sort((a, b) => b[1] - a[1])
-          .map(([style, score]) => (
-            <li key={style} className="flex items-center gap-2">
-              <span className="w-28 text-sm">{STYLE_LABELS[style]}</span>
-              <span className="h-3 flex-1 rounded-full bg-white">
-                <span className="block h-3 rounded-full bg-sea" style={{ width: `${Math.round(score * 100)}%` }} />
-              </span>
-              <span className="w-10 text-right text-sm">{Math.round(score * 100)}</span>
-            </li>
-          ))}
-      </ul>
-      {profile.lastNote && <p className="mt-2 text-sm">{profile.lastNote}</p>}
-    </details>
-  );
+function LessonVisual({ index, title, demo }: { index: number; title: string; demo: boolean }) {
+  return <figure className={`lesson-visual visual-${index % 3}`}><span className="visual-label">{demo ? "CUADERNO DE EXPLORACIÓN" : "TU ESPACIO PARA IMAGINAR"}</span><span className="visual-decoration" aria-hidden="true">✧</span><span className="discovery-icon" role="img" aria-label={demo ? ["Dinosaurio", "Tiranosaurio", "Alimentación", "Plantas", "Fósil"][index] ?? "Dinosaurio" : "Libro de descubrimientos"}>{demo ? ["🦕", "🦖", "🦴", "🌿", "🐚"][index] ?? "🦕" : "📖"}</span><figcaption>{title}<small>Ilustración de apoyo · imagina y descubre</small></figcaption></figure>;
 }

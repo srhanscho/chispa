@@ -1,9 +1,20 @@
 // Browser-only helpers around the Web Speech API (free, no key).
 
-export function speak(text: string) {
+let finishSpeech: (() => void) | undefined;
+
+export function speak(text: string, onSpeaking?: (speaking: boolean) => void) {
+  stopSpeaking();
   if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
-  window.speechSynthesis.cancel();
   const utterance = new SpeechSynthesisUtterance(text);
+  const finish = () => {
+    if (finishSpeech !== finish) return;
+    finishSpeech = undefined;
+    onSpeaking?.(false);
+  };
+  finishSpeech = finish;
+  utterance.onstart = () => { if (finishSpeech === finish) onSpeaking?.(true); };
+  utterance.onend = finish;
+  utterance.onerror = finish;
   const voices = window.speechSynthesis.getVoices();
   utterance.voice =
     voices.find((v) => v.lang === "es-CO") ??
@@ -13,10 +24,11 @@ export function speak(text: string) {
   utterance.lang = utterance.voice?.lang ?? "es-CO";
   utterance.pitch = 1.2;
   utterance.rate = 0.95;
-  window.speechSynthesis.speak(utterance);
+  try { window.speechSynthesis.speak(utterance); } catch { finish(); }
 }
 
 export function stopSpeaking() {
+  finishSpeech?.();
   if (typeof window !== "undefined" && "speechSynthesis" in window) window.speechSynthesis.cancel();
 }
 
@@ -27,6 +39,7 @@ type RecognitionCtor = new () => {
   onerror: (() => void) | null;
   onend: (() => void) | null;
   start: () => void;
+  abort: () => void;
 };
 
 function recognitionCtor(): RecognitionCtor | null {
@@ -39,12 +52,13 @@ export const canListen = () => recognitionCtor() !== null;
 
 export function listen(onText: (text: string) => void, onEnd: () => void) {
   const Ctor = recognitionCtor();
-  if (!Ctor) return onEnd();
+  if (!Ctor) { onEnd(); return () => {}; }
   const recognition = new Ctor();
   recognition.lang = "es-CO";
   recognition.interimResults = false;
   recognition.onresult = (event) => onText(event.results[0][0].transcript);
   recognition.onerror = onEnd;
   recognition.onend = onEnd;
-  recognition.start();
+  try { recognition.start(); } catch { onEnd(); }
+  return () => { recognition.onresult = null; recognition.onerror = null; recognition.onend = null; recognition.abort(); };
 }
