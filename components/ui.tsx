@@ -9,8 +9,8 @@ import bundledImages from "@/public/demo/images.json";
 type Tone = "iguana" | "sea" | "mango" | "coral" | "plain";
 
 const TONES: Record<Tone, string> = {
-  iguana: "bg-[#28743a] text-white",
-  sea: "bg-[#08788a] text-white",
+  iguana: "bg-iguana text-white",
+  sea: "bg-sea text-white",
   mango: "bg-mango text-ink",
   coral: "bg-coral text-white",
   plain: "bg-white text-ink",
@@ -24,7 +24,7 @@ export function Button({
   return (
     <button
       {...props}
-      className={`min-h-14 rounded-2xl border border-black/10 px-5 font-display text-xl font-bold shadow-[0_3px_0_#1F2A4420] transition active:translate-y-0.5 active:shadow-none disabled:opacity-50 ${TONES[tone]} ${className}`}
+      className={`min-h-14 rounded-2xl border-4 border-ink px-5 font-display text-xl font-bold shadow-[0_4px_0_#1F2A44] transition active:translate-y-1 active:shadow-none disabled:opacity-50 ${TONES[tone]} ${className}`}
     />
   );
 }
@@ -103,7 +103,7 @@ export function LessonImage({
           maybe && maybe.source !== "fallback"
             ? maybe
             : {
-                url: "/assets/lulo/lulo_referencia_original.png",
+                url: "/assets/lulo/lulo.webp",
                 source: "fallback" as const,
               };
         if (cancelled) return;
@@ -140,7 +140,7 @@ export function LessonImage({
               if (image.source !== "fallback") {
                 setLoaded(false);
                 setImage({
-                  url: "/assets/lulo/lulo_referencia_original.png",
+                  url: "/assets/lulo/lulo.webp",
                   source: "fallback",
                 });
               } else setLoaded(true);

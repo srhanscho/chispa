@@ -2520,3 +2520,259 @@ progress::-moz-progress-bar {
     flex-wrap: wrap;
   }
 }
+
+/* ---------------------------------------------------------------------------
+   Chispa classic theme: sand background, thick ink outlines, solid drop shadows,
+   iguana / sea / mango / coral accents and Baloo headings. This layer only restyles
+   colors, borders, shadows and type; layout and responsive rules above stay as they are.
+   --------------------------------------------------------------------------- */
+:root {
+  --ink: #1f2a44;
+  --outline: 4px solid var(--ink);
+  --outline-thin: 3px solid var(--ink);
+  --drop: 0 4px 0 var(--ink);
+  --drop-card: 0 6px 0 var(--ink);
+}
+
+body {
+  background: #fff6e5;
+  color: var(--ink);
+}
+h1,
+h2,
+h3,
+.brand {
+  color: var(--ink);
+}
+.brand {
+  color: #3fa34d;
+}
+:focus-visible {
+  outline-color: #14a3b8;
+}
+
+/* Header */
+.app-header {
+  border-bottom: none;
+}
+.star-counter {
+  border: var(--outline);
+  background: #ffc93c;
+  color: var(--ink);
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-weight: 800;
+}
+.header-button {
+  border: var(--outline-thin);
+  background: #fff;
+  color: var(--ink);
+  box-shadow: var(--drop);
+}
+
+/* Buttons */
+.primary-button,
+.secondary-button,
+.soft-button,
+.surprise-button,
+.compact-button,
+.tutor-launch {
+  border: var(--outline);
+  border-radius: 16px;
+  box-shadow: var(--drop);
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-weight: 800;
+  transition: transform 0.1s, box-shadow 0.1s;
+}
+.primary-button,
+.tutor-launch {
+  background: #3fa34d;
+  color: #fff;
+}
+.secondary-button,
+.soft-button,
+.surprise-button {
+  background: #fff;
+  color: var(--ink);
+}
+.primary-button:active,
+.secondary-button:active,
+.soft-button:active,
+.surprise-button:active,
+.compact-button:active,
+.tutor-launch:active,
+.header-button:active {
+  transform: translateY(4px);
+  box-shadow: none;
+}
+.primary-button:hover:not(:disabled),
+.tutor-launch:hover {
+  background: #379345;
+}
+.text-button {
+  color: var(--ink);
+}
+
+/* Cards and panels */
+.learning-card,
+.topic-tile,
+.suggestion-card,
+.your-question,
+.photo-topic,
+.drawer,
+.settings-panel,
+.tutor-chat,
+.login-card,
+.child-form,
+.comparison-card,
+.course-list,
+.adult-panel,
+.resume-banner {
+  border: var(--outline);
+  border-radius: 24px;
+  background: #fff;
+  box-shadow: var(--drop-card);
+}
+.your-question,
+.photo-topic {
+  border-style: solid;
+}
+.topic-tile:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 9px 0 var(--ink);
+  border-color: var(--ink);
+}
+.suggestion-card {
+  background: #fff;
+}
+.companion-note,
+.support-note,
+.parent-note,
+.profile-insight {
+  border: var(--outline-thin);
+  border-radius: 20px;
+  background: #fff6e5;
+  color: var(--ink);
+}
+
+/* Inputs */
+.topic-input,
+.login-card input:not([type="checkbox"]),
+.learner-toolbar select,
+.child-form input,
+.child-form select {
+  border: var(--outline);
+  border-radius: 16px;
+  background: #fff;
+  color: var(--ink);
+}
+.mic-button {
+  border-left: var(--outline-thin);
+  background: #14a3b8;
+  color: #fff;
+}
+
+/* Labels */
+.eyebrow {
+  color: #14a3b8;
+}
+.pill-label {
+  border: var(--outline-thin);
+  background: #ffc93c;
+  color: var(--ink);
+}
+
+/* Lesson */
+.lesson-photo-frame {
+  border: var(--outline);
+  border-radius: 20px;
+  background: #fff6e5;
+}
+.card-progress-label {
+  color: #14a3b8;
+}
+.answer-choice {
+  border: var(--outline);
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: var(--drop);
+}
+.choice-picked {
+  background: #e3f5f8;
+  border-color: #14a3b8;
+}
+.choice-right {
+  background: #e6f4e4;
+  border-color: #3fa34d;
+}
+.answer-feedback {
+  border: var(--outline-thin);
+  background: #fff1cc;
+  color: var(--ink);
+}
+.feedback-success {
+  background: #e6f4e4;
+}
+
+/* Tutor chat */
+.bubble-lulo {
+  background: #e6f4e4;
+  border: 2px solid var(--ink);
+}
+.bubble-child {
+  background: #fff1cc;
+  border: 2px solid var(--ink);
+}
+.mascot-bubble {
+  border: var(--outline-thin);
+  box-shadow: var(--drop);
+}
+
+/* Journey steps */
+.trail-reached > span {
+  background: #3fa34d;
+  border-color: var(--ink);
+  color: #fff;
+}
+
+/* Keep the floating tutor button from covering the last controls on phones. */
+@media (max-width: 640px) {
+  .app-shell {
+    padding-bottom: 96px;
+  }
+}
+
+/* Classic theme: accents that were still the darker green */
+.welcome-copy h1 span,
+.reward-copy h1 span {
+  color: #3fa34d;
+}
+.journey-trail [aria-current="step"] > span {
+  background: #3fa34d;
+  border-color: var(--ink);
+}
+.journey-trail li > span {
+  border-width: 3px;
+}
+progress::-webkit-progress-value {
+  background: #3fa34d;
+}
+progress::-moz-progress-bar {
+  background: #3fa34d;
+}
+progress {
+  height: 12px;
+  border: 2px solid var(--ink);
+}
+.surprise-button {
+  padding: 10px 18px;
+}
+.learning-card progress {
+  height: 12px;
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+}
+
+/* The chat header's avatar is a div too; keep it at its own size instead of stretching. */
+.tutor-chat header > .lulo-avatar {
+  flex: 0 0 auto;
+}

@@ -385,7 +385,7 @@ export default function ChispaApp() {
       const updated = completeProfile(
         learner,
         session,
-        "/assets/lulo/lulo_referencia_original.png",
+        "/assets/lulo/lulo.webp",
       );
       learners.updateProfile(updated);
       void finalizeSession(updated, session, journey.courseId);

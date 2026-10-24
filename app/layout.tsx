@@ -7,7 +7,7 @@ const nunito = Nunito({ variable: "--font-nunito", subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "Chispa — descubre con Lulo",
-  description: "Pequeñas aventuras, grandes descubrimientos. Aprende con Lulo, tu iguana exploradora del Caribe colombiano.",
+  description: "Pequeñas aventuras, grandes descubrimientos. Aprende con Lulo, tu iguano explorador del Caribe colombiano.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
