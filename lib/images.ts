@@ -63,7 +63,21 @@ async function generateIllustration(query: string): Promise<ImageResult | null> 
   return null;
 }
 
+// Images saved by scripts/pregen-demo.ts, served from /public so the demo works offline.
+type DemoEntry = { url: string; credit?: string; pageUrl?: string };
+let demoManifest: Record<string, DemoEntry> | null = null;
+async function demoImage(req: ImageRequest): Promise<ImageResult | null> {
+  demoManifest ??= await readFile(path.join(process.cwd(), "public", "demo", "images.json"), "utf8")
+    .then((raw) => JSON.parse(raw) as Record<string, DemoEntry>)
+    .catch(() => ({}));
+  const entry = demoManifest[`${req.kind}:${req.query.toLowerCase().trim()}`];
+  return entry ? { ...entry, source: "wikimedia" } : null;
+}
+
 export async function resolveImage(req: ImageRequest): Promise<ImageResult> {
+  const demo = await demoImage(req);
+  if (demo) return demo;
+
   const key = keyFor(req);
   const cached = memory.get(key) ?? (await readDisk(key));
   if (cached) return cached;

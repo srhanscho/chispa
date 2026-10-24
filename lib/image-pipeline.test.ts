@@ -27,9 +27,9 @@ describe("resolveImageWith", () => {
     expect(commons).not.toHaveBeenCalled();
   });
 
-  it("for illustrations without OpenAI, falls back to a Wikimedia drawing or photo", async () => {
+  it("for illustrations without OpenAI, falls back to a Wikimedia photo (bitmaps only, no scanned PDFs)", async () => {
     const commons = vi.fn(async (q: string, opts?: { bitmapOnly?: boolean }) =>
-      q === "iguana volcano" && opts?.bitmapOnly === false ? photo("iguana.jpg") : null,
+      q === "iguana volcano" && opts?.bitmapOnly === true ? photo("iguana.jpg") : null,
     );
     const result = await resolveImageWith(
       { kind: "illustration", query: "friendly iguana next to a volcano" },

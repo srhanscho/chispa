@@ -17,12 +17,16 @@ interface CommonsPage {
 
 const stripHtml = (html: string) => html.replace(/<[^>]*>/g, "").trim();
 
+// Book scans and documents render as page thumbnails that make no sense for kids.
+const SCANNED = /\.(pdf|djvu|tiff?)$/i;
+
 export function pickCommonsImage(json: unknown): ImageResult | null {
   const pages = (json as { query?: { pages?: Record<string, CommonsPage> } }).query?.pages;
   if (!pages) return null;
 
   const best = Object.values(pages)
     .filter((page) => page.imageinfo?.[0]?.thumburl ?? page.imageinfo?.[0]?.url)
+    .filter((page) => !SCANNED.test(page.imageinfo?.[0]?.url ?? ""))
     .sort((a, b) => (a.index ?? Infinity) - (b.index ?? Infinity))[0];
   const info = best?.imageinfo?.[0];
   if (!info) return null;

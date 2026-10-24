@@ -39,7 +39,7 @@ export async function resolveImageWith(req: ImageRequest, sources: ImageSources)
   }
   return (
     (await safe(() => sources.illustrate(req.query))) ??
-    (await firstCommonsHit(sources, req.query, false)) ??
+    (await firstCommonsHit(sources, req.query, true)) ??
     FALLBACK_IMAGE
   );
 }
