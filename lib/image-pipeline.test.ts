@@ -72,6 +72,22 @@ describe("resolveImageWith", () => {
     expect(result.url).toBe("volcano.jpg");
   });
 
+  it("does not wait longer than the vision time limit", async () => {
+    const started = Date.now();
+    const result = await resolveImageWith(
+      { kind: "photo", query: "volcano eruption" },
+      {
+        commons: async () => null,
+        commonsMany: async () => [photo("volcano.jpg")],
+        choose: () => new Promise<number>(() => {}),
+        chooseTimeoutMs: 30,
+        illustrate: async () => null,
+      },
+    );
+    expect(result.url).toBe("volcano.jpg");
+    expect(Date.now() - started).toBeLessThan(1000);
+  });
+
   it("for illustrations, uses OpenAI first", async () => {
     const commons = vi.fn(async () => photo("x.jpg"));
     const result = await resolveImageWith(

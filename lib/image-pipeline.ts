@@ -18,6 +18,27 @@ export interface ImageSources {
   // description (index), or -1 when none fits.
   commonsMany?: (query: string, opts?: CommonsOptions) => Promise<ImageResult[]>;
   choose?: (description: string, candidates: ImageResult[]) => Promise<number>;
+  // Gemma can be slow under load; past this limit the first candidate is used.
+  chooseTimeoutMs?: number;
+}
+
+const VISION_TIMEOUT_MS = 8000;
+const MAX_VISION_CHECKS = 2;
+
+function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error(`vision check timed out after ${ms} ms`)), ms);
+    promise.then(
+      (value) => {
+        clearTimeout(timer);
+        resolve(value);
+      },
+      (error) => {
+        clearTimeout(timer);
+        reject(error);
+      },
+    );
+  });
 }
 
 // A failing source (network, quota) must never break the lesson: treat errors as "no result".
@@ -35,14 +56,17 @@ async function firstCommonsHit(sources: ImageSources, query: string, options?: Q
   // Without a concrete subject any web result is a guess; Lulo is a better answer than a random photo.
   if (!mustContain) return null;
   const { commonsMany, choose } = sources;
+  let checks = 0;
   for (const attempt of searchQueries(query, options)) {
     const opts = { bitmapOnly: true, mustContain };
     if (commonsMany && choose) {
       const candidates = (await safe(() => commonsMany(attempt, opts))) ?? [];
       if (!candidates.length) continue;
+      // Two rejected batches mean the web has no good picture for this card; stop and show Lulo.
+      if (checks++ >= MAX_VISION_CHECKS) return null;
       let picked: number;
       try {
-        picked = await choose(query, candidates);
+        picked = await withTimeout(choose(query, candidates), sources.chooseTimeoutMs ?? VISION_TIMEOUT_MS);
       } catch (error) {
         // The check is a quality bonus; if it fails, keep the old behavior instead of losing the image.
         console.error("[images] vision check failed", error);
