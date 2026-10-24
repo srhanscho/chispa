@@ -22,7 +22,7 @@ import {
 import { TutorChat } from "./TutorChat";
 import { PhotoTopic } from "./PhotoTopic";
 import { LoadingAdventure } from "./LoadingAdventure";
-import { LessonImage } from "./ui";
+import { LessonImage, prefetchLessonImages } from "./ui";
 import { adventures, findAdventure } from "@/lib/adventures";
 import {
   clearJourney,
@@ -116,6 +116,15 @@ export default function ChispaApp() {
   useEffect(() => {
     heading.current?.focus();
   }, [stage, journey?.step]);
+  const currentLesson = journey?.lesson;
+  useEffect(() => {
+    // Resolve every card image (and the sticker) while the child reads the first card.
+    if (!currentLesson) return;
+    prefetchLessonImages([
+      ...currentLesson.cards.map((card) => card.image),
+      { kind: "illustration", query: currentLesson.sticker.query },
+    ]);
+  }, [currentLesson]);
   useEffect(() => {
     if (adultOpen) adultPanel.current?.focus();
   }, [adultOpen]);

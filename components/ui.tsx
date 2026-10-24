@@ -46,7 +46,8 @@ export function Card({
 }
 
 // Cache resolved images in localStorage by request so the same image is never fetched (or paid) twice.
-const IMAGE_CACHE = "chispa:images";
+// v2: results before the subject check (e.g. a stork on a dinosaur card) must not be reused.
+const IMAGE_CACHE = "chispa:images:v2";
 
 function readImageCache(): Record<string, ImageResult> {
   try {
@@ -54,6 +55,53 @@ function readImageCache(): Record<string, ImageResult> {
   } catch {
     return {};
   }
+}
+
+const FALLBACK_RESULT: ImageResult = { url: "/assets/lulo/lulo.webp", source: "fallback" };
+const inflight = new Map<string, Promise<ImageResult>>();
+
+// Resolves one card image once per session: bundled demo image, browser cache, then /api/image.
+// Requests already in flight are shared, so prefetching and the visible card never ask twice.
+export function loadLessonImage(request: ImageRequest): Promise<ImageResult> {
+  const key = `${request.kind}:${request.query}`;
+  const cached = readImageCache()[key];
+  if (cached) return Promise.resolve(cached);
+  const bundled = (bundledImages as Record<string, { url: string; credit?: string; pageUrl?: string }>)[
+    `${request.kind}:${request.query.toLowerCase().trim()}`
+  ];
+  // Bundled photos keep their original credits even without an API connection.
+  if (bundled) return Promise.resolve({ ...bundled, source: bundled.credit ? "wikimedia" : "mascot" });
+
+  const pending = inflight.get(key);
+  if (pending) return pending;
+  const request$ = fetch("/api/image", {
+    method: "POST",
+    body: JSON.stringify(request),
+    signal: AbortSignal.timeout(60000),
+  })
+    .then((res) => (res.ok ? (res.json() as Promise<ImageResult>) : null))
+    .catch(() => null)
+    .then((maybe) => {
+      // Never leave the card stuck on the loading Lulo: show the fallback if the server failed.
+      const result = maybe && maybe.source !== "fallback" ? maybe : FALLBACK_RESULT;
+      // Data URLs are large; only remote URLs go to localStorage.
+      if (!result.url.startsWith("data:") && result.source !== "fallback") {
+        try {
+          localStorage.setItem(IMAGE_CACHE, JSON.stringify({ ...readImageCache(), [key]: result }));
+        } catch {
+          // Storage full or blocked; skip caching.
+        }
+      }
+      inflight.delete(key);
+      return result;
+    });
+  inflight.set(key, request$);
+  return request$;
+}
+
+// Start every card image of a lesson while the child reads the first card.
+export function prefetchLessonImages(requests: ImageRequest[]) {
+  for (const request of requests) void loadLessonImage(request);
 }
 
 // Only rendered on the client after a lesson loads; give it a `key` per request so it remounts.
@@ -78,48 +126,9 @@ export function LessonImage({
   useEffect(() => {
     if (image) return;
     let cancelled = false;
-    const bundled = (
-      bundledImages as Record<
-        string,
-        { url: string; credit?: string; pageUrl?: string }
-      >
-    )[`${request.kind}:${request.query.toLowerCase().trim()}`];
-    if (bundled) {
-      // Bundled photos keep their original credits even without an API connection.
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setImage({ ...bundled, source: bundled.credit ? "wikimedia" : "mascot" });
-      return;
-    }
-    fetch("/api/image", {
-      method: "POST",
-      body: JSON.stringify(request),
-      signal: AbortSignal.timeout(60000),
-    })
-      .then((res) => (res.ok ? (res.json() as Promise<ImageResult>) : null))
-      .catch(() => null)
-      .then((maybe) => {
-        // Never leave the card stuck on the loading Lulo: show the fallback if the server failed.
-        const result =
-          maybe && maybe.source !== "fallback"
-            ? maybe
-            : {
-                url: "/assets/lulo/lulo.webp",
-                source: "fallback" as const,
-              };
-        if (cancelled) return;
-        setImage(result);
-        // Data URLs are large; only remote URLs go to localStorage.
-        if (!result.url.startsWith("data:") && result.source !== "fallback") {
-          try {
-            localStorage.setItem(
-              IMAGE_CACHE,
-              JSON.stringify({ ...readImageCache(), [key]: result }),
-            );
-          } catch {
-            // Storage full or blocked; skip caching.
-          }
-        }
-      });
+    void loadLessonImage(request).then((result) => {
+      if (!cancelled) setImage(result);
+    });
     return () => {
       cancelled = true;
     };

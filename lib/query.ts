@@ -4,6 +4,9 @@ const FILLER = new Set([
   "a", "an", "the", "of", "on", "in", "at", "to", "and", "with", "inside", "next", "showing",
   "illustration", "drawing", "picture", "image", "photo", "cartoon", "sticker", "scene",
   "cute", "friendly", "smiling", "happy", "big", "small", "little", "looking", "colorful",
+  // Size and comparison words: on their own they match random photos ("huge" → a man carrying a shark).
+  "tall", "huge", "giant", "enormous", "large", "tiny", "long", "short", "comparison", "compared",
+  "size", "as", "than", "like", "very", "many",
 ]);
 
 export interface QueryOptions {
@@ -37,4 +40,12 @@ export function searchQueries(
     seen.add(key);
     return true;
   });
+}
+
+// The prompt asks Gemma to start every image query with its main subject ("dinosaur ...").
+// A Commons file must mention that subject, so a vague retry can't return a stork for a dinosaur card.
+export function subjectStem(query: string): string | null {
+  const subject = keywordsOf(query)[0];
+  if (!subject) return null;
+  return subject.length >= 6 ? subject.slice(0, 5) : subject;
 }

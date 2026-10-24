@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { searchQueries } from "./query";
+import { searchQueries, subjectStem } from "./query";
 
 describe("searchQueries", () => {
   it("keeps short queries as the first attempt", () => {
@@ -29,5 +29,23 @@ describe("searchQueries", () => {
 
   it("ignores punctuation and casing", () => {
     expect(searchQueries("A cute, friendly T-Rex!")).toEqual(["A cute, friendly T-Rex!", "t-rex"]);
+  });
+});
+
+describe("subjectStem", () => {
+  it("takes the first concrete keyword as the subject and stems long words", () => {
+    expect(subjectStem("dinosaur next to a tall building")).toBe("dinos");
+    expect(subjectStem("cute cartoon T-Rex sticker")).toBe("t-rex");
+    expect(subjectStem("Tyrannosaurus rex skeleton museum")).toBe("tyran");
+    expect(subjectStem("bee on a flower")).toBe("bee");
+  });
+
+  it("returns null when there is no keyword", () => {
+    expect(subjectStem("a cute little picture")).toBeNull();
+  });
+
+  it("skips size and comparison words so the subject is a real thing", () => {
+    expect(subjectStem("huge")).toBeNull();
+    expect(subjectStem("giant dinosaur as tall as a building")).toBe("dinos");
   });
 });
