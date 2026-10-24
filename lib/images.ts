@@ -10,7 +10,7 @@ const STYLE =
   "colors green #3FA34D, turquoise #14A3B8, mango yellow #FFC93C, coral #FF6B5B, " +
   "light sand background, no text";
 
-const FALLBACK: ImageResult = { url: "/lula.svg", source: "fallback" };
+const FALLBACK: ImageResult = { url: "/lulo.svg", source: "fallback" };
 
 // In-memory cache per server instance, plus a disk cache in development so demo images are paid once.
 const memory = new Map<string, ImageResult>();

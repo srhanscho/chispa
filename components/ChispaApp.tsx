@@ -5,7 +5,7 @@ import { levelFor, pickStyle, recordSession, type LearnerProfile, type SessionLo
 import { demoProfiles, loadProfiles, saveProfiles } from "@/lib/profile";
 import { canListen, listen, speak, stopSpeaking } from "@/lib/speech";
 import type { Lesson, Reexplain } from "@/lib/schema";
-import { Button, Card, LessonImage, Lula } from "./ui";
+import { Button, Card, LessonImage, Lulo } from "./ui";
 
 type Stage = "start" | "loading" | "lesson" | "quiz" | "done" | "error";
 
@@ -173,7 +173,7 @@ export default function ChispaApp() {
     <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-5 px-4 py-6">
       <header className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <Lula size={56} />
+          <Lulo size={56} />
           <h1 className="text-3xl font-bold text-iguana">Chispa</h1>
         </div>
         <div className="flex items-center gap-2">
@@ -224,15 +224,15 @@ export default function ChispaApp() {
 
       {stage === "loading" && (
         <Card className="flex flex-col items-center gap-3 text-center">
-          <Lula size={120} thinking />
-          <p className="font-display text-2xl">Lula está preparando tu clase...</p>
+          <Lulo size={120} thinking />
+          <p className="font-display text-2xl">Lulo está preparando tu clase...</p>
         </Card>
       )}
 
       {stage === "error" && (
         <Card className="flex flex-col items-center gap-3 text-center">
-          <Lula size={96} />
-          <p className="font-display text-2xl">¡Ay! Lula se enredó. ¿Lo intentamos otra vez?</p>
+          <Lulo size={96} />
+          <p className="font-display text-2xl">¡Ay! Lulo se enredó. ¿Lo intentamos otra vez?</p>
           <Button onClick={() => setStage("start")}>Volver</Button>
         </Card>
       )}

@@ -17,7 +17,8 @@ import {
 
 const MODEL = process.env.GEMMA_MODEL ?? "gemma-4-26b-a4b-it";
 
-const LULA = `You are Lula, a curious and kind iguana from Barranquilla, Colombia, who teaches children.
+const LULO = `You are Lulo, a curious and kind young iguana (a boy) from Barranquilla, Colombia, who teaches children.
+He wears a sombrero vueltiao and a yellow Colombia jersey, and speaks with warmth and humor.
 You always write in simple Spanish for children. You never tell a child they are wrong; you encourage them.
 You may use at most one light Colombian coastal expression ("¡Ajá!", "¡Qué chévere!", "¡Ey, mira!") per answer.
 You only talk about child-appropriate topics. If a topic is not appropriate, choose a nearby safe topic.`;
@@ -36,7 +37,7 @@ async function generateJson<T>(schema: z.ZodType<T>, parts: Part[], retries = 1)
     const response = await ai().models.generateContent({
       model: MODEL,
       contents: [{ role: "user", parts: request }],
-      config: { systemInstruction: LULA },
+      config: { systemInstruction: LULO },
     });
     try {
       return schema.parse(extractJson(response.text ?? ""));

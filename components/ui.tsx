@@ -35,13 +35,14 @@ export function Card({ children, className = "" }: { children: React.ReactNode; 
   );
 }
 
-export function Lula({ size = 96, thinking = false }: { size?: number; thinking?: boolean }) {
+// Lulo's artwork is 451x512, so the width follows the height to keep proportions.
+export function Lulo({ size = 96, thinking = false }: { size?: number; thinking?: boolean }) {
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img
-      src="/lula.svg"
-      alt="Lula, la iguana"
-      width={size}
+      src="/lulo.svg"
+      alt="Lulo, el iguano"
+      width={Math.round(size * (451 / 512))}
       height={size}
       className={thinking ? "animate-bounce" : ""}
     />
@@ -94,7 +95,7 @@ export function LessonImage({ request, alt }: { request: ImageRequest; alt: stri
           // eslint-disable-next-line @next/next/no-img-element
           <img src={image.url} alt={alt} className="h-full w-full object-cover" />
         ) : (
-          <Lula size={72} thinking />
+          <Lulo size={72} thinking />
         )}
       </div>
       {image?.credit && (

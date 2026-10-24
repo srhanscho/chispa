@@ -1,6 +1,6 @@
-# Chispa — learn with Lula
+# Chispa — learn with Lulo
 
-Chispa is an AI tutor for kids aged 6–10. A child says what they want to learn ("¡dinosaurios!"), and Lula, a curious iguana from Barranquilla, builds a short lesson with pictures, reads it aloud, and ends with a quiz. An adaptive engine learns **how each child learns** and changes the teaching style of the next lesson.
+Chispa is an AI tutor for kids aged 6–10. A child says what they want to learn ("¡dinosaurios!"), and Lulo, a curious young iguana from Barranquilla, builds a short lesson with pictures, reads it aloud, and ends with a quiz. An adaptive engine learns **how each child learns** and changes the teaching style of the next lesson.
 
 Built for Hacktoberfest Barranquilla 2026. All text and reasoning run on **Gemma 4** through the Gemini API.
 
