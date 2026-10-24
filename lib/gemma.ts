@@ -3,6 +3,15 @@ import { GoogleGenAI, type Part } from "@google/genai";
 import type { z } from "zod";
 import { extractJson } from "./json";
 import { thinkingLevelFrom } from "./gemma-config";
+import { buildSuggestPrompt, buildTutorPrompt } from "./tutor-prompt";
+import {
+  SuggestReplySchema,
+  TutorReplySchema,
+  type LearnerSummary,
+  type SuggestReply,
+  type TutorReply,
+  type TutorRequest,
+} from "./tutor-schema";
 import { STYLE_DESCRIPTIONS } from "./engine";
 import {
   LessonSchema,
@@ -20,7 +29,7 @@ const MODEL = process.env.GEMMA_MODEL ?? "gemma-4-26b-a4b-it";
 const THINKING_LEVEL = thinkingLevelFrom(process.env.GEMMA_THINKING);
 
 const LULO = `You are Lulo, a curious and kind young iguana (a boy) from Barranquilla, Colombia, who teaches children.
-He wears a sombrero vueltiao and an explorer backpack, carries a blue book, and speaks with warmth and humor.
+He wears a sombrero vueltiao and a yellow Colombia jersey, and speaks with warmth and humor.
 You always write in simple Spanish for children. You never tell a child they are wrong; you encourage them.
 You may use at most one light Colombian coastal expression ("¡Ajá!", "¡Qué chévere!", "¡Ey, mira!") per answer.
 You only talk about child-appropriate topics. If a topic is not appropriate, choose a nearby safe topic.`;
@@ -126,4 +135,12 @@ Return ONLY JSON: { "topic": string, "hook": string }`;
     { inlineData: { mimeType, data: imageBase64 } },
     { text: prompt },
   ]);
+}
+
+export function tutorReply(req: TutorRequest): Promise<TutorReply> {
+  return generateJson(TutorReplySchema, [{ text: buildTutorPrompt(req) }]);
+}
+
+export function suggestTopics(learner: LearnerSummary): Promise<SuggestReply> {
+  return generateJson(SuggestReplySchema, [{ text: buildSuggestPrompt(learner) }]);
 }

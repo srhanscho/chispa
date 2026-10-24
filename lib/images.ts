@@ -3,14 +3,13 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { createHash } from "node:crypto";
 import path from "node:path";
 import { searchCommons, type ImageResult } from "./commons";
+import { FALLBACK_IMAGE, resolveImageWith } from "./image-pipeline";
 import type { ImageRequest } from "./schema";
 
 const STYLE =
   "flat children's book illustration, rounded shapes, thick outlines, " +
   "colors green #3FA34D, turquoise #14A3B8, mango yellow #FFC93C, coral #FF6B5B, " +
   "light sand background, no text";
-
-const FALLBACK: ImageResult = { url: "/assets/lulo/lulo_referencia_original.png", source: "fallback" };
 
 // In-memory cache per server instance, plus a disk cache in development so demo images are paid once.
 const memory = new Map<string, ImageResult>();
@@ -51,6 +50,7 @@ async function generateIllustration(query: string): Promise<ImageResult | null> 
       quality: "low",
       n: 1,
     }),
+    signal: AbortSignal.timeout(45000),
   });
   if (!response.ok) {
     console.error("OpenAI image error", response.status, await response.text());
@@ -63,17 +63,28 @@ async function generateIllustration(query: string): Promise<ImageResult | null> 
   return null;
 }
 
+// Images saved by scripts/pregen-demo.ts, served from /public so the demo works offline.
+type DemoEntry = { url: string; credit?: string; pageUrl?: string };
+let demoManifest: Record<string, DemoEntry> | null = null;
+async function demoImage(req: ImageRequest): Promise<ImageResult | null> {
+  demoManifest ??= await readFile(path.join(process.cwd(), "public", "demo", "images.json"), "utf8")
+    .then((raw) => JSON.parse(raw) as Record<string, DemoEntry>)
+    .catch(() => ({}));
+  const entry = demoManifest[`${req.kind}:${req.query.toLowerCase().trim()}`];
+  return entry ? { ...entry, source: "wikimedia" } : null;
+}
+
 export async function resolveImage(req: ImageRequest): Promise<ImageResult> {
+  const demo = await demoImage(req);
+  if (demo) return demo;
+
   const key = keyFor(req);
   const cached = memory.get(key) ?? (await readDisk(key));
   if (cached) return cached;
 
-  const result =
-    (req.kind === "photo" ? await searchCommons(req.query) : null) ??
-    (await generateIllustration(req.query)) ??
-    FALLBACK;
+  const result = await resolveImageWith(req, { commons: searchCommons, illustrate: generateIllustration });
 
-  if (result !== FALLBACK) {
+  if (result !== FALLBACK_IMAGE) {
     memory.set(key, result);
     await writeDisk(key, result);
   }

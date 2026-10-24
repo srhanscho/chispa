@@ -1,0 +1,83 @@
+{
+  "topic": "Dinosaurios",
+  "style": "visual",
+  "level": "explorer",
+  "cover": {
+    "kind": "illustration",
+    "query": "cute baby dinosaur wearing a tiny hat"
+  },
+  "cards": [
+    {
+      "title": "¡Gigantes!",
+      "text": "El Argentinosaurus era enorme. Era más largo que tres autobuses juntos. ¡Imagínate eso!",
+      "speech": "¡Hola, explorador! Mira este dinosaurio. Es tan largo como tres buses grandes juntos. ¡Qué gigante!",
+      "image": {
+        "kind": "illustration",
+        "query": "long neck dinosaur next to three buses comparison"
+      }
+    },
+    {
+      "title": "Pequeños amigos",
+      "text": "El Compsognathus era muy chiquito. Era casi del tamaño de una gallina. ¡Muy rápido!",
+      "speech": "Pero no todos eran grandes. Este amigo era tan pequeño como una gallina de la granja.",
+      "image": {
+        "kind": "photo",
+        "query": "chicken standing on grass"
+      }
+    },
+    {
+      "title": "Dientes de acero",
+      "text": "El T-Rex tenía dientes enormes. Cada diente era como un plátano grande. ¡Eran muy fuertes!",
+      "speech": "¡Ey, mira! El T-Rex tenía dientes muy grandes. Cada uno era tan grande como un plátano.",
+      "image": {
+        "kind": "photo",
+        "query": "Tyrannosaurus rex skull fossil"
+      }
+    },
+    {
+      "title": "Huellas mágicas",
+      "text": "Los dinosaurios dejaron huellas. Estas huellas son como mapas antiguos. ¡Podemos encontrarlas!",
+      "speech": "Los dinosaurios caminaron por aquí. Sus huellas nos cuentan historias muy divertidas.",
+      "image": {
+        "kind": "photo",
+        "query": "dinosaur footprint fossil"
+      }
+    }
+  ],
+  "quiz": [
+    {
+      "question": "¿Cómo era el Argentinosaurus?",
+      "options": [
+        "Pequeño como un gato",
+        "Largo como tres autobuses",
+        "Corto como un lápiz"
+      ],
+      "answerIndex": 1,
+      "hint": "¡Piensa en algo muy, muy largo!"
+    },
+    {
+      "question": "¿A qué animal se parece el Compsognathus?",
+      "options": [
+        "A una gallina",
+        "A un elefante",
+        "A un león"
+      ],
+      "answerIndex": 0,
+      "hint": "¡Es un animalito muy pequeño!"
+    },
+    {
+      "question": "¿Cómo eran los dientes del T-Rex?",
+      "options": [
+        "Pequeños como granos de arroz",
+        "Grandes como plátanos",
+        "No tenía dientes"
+      ],
+      "answerIndex": 1,
+      "hint": "¡Eran dientes muy poderosos!"
+    }
+  ],
+  "sticker": {
+    "name": "Lulo el explorador",
+    "query": "cute iguana wearing a sombrero vueltiao"
+  }
+}
