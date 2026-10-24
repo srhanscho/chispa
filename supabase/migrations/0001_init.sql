@@ -60,7 +60,7 @@ create policy "parents update their courses" on public.courses
 
 -- lesson_cache has RLS on and no policies: only the secret (service) key can read or write it.
 
-create function public.touch_updated_at() returns trigger
+create function public.chispa_touch_updated_at() returns trigger
 language plpgsql set search_path = '' as $$
 begin
   new.updated_at = now();
@@ -68,5 +68,5 @@ begin
 end;
 $$;
 
-create trigger children_touch before update on public.children
-  for each row execute function public.touch_updated_at();
+create trigger chispa_children_touch before update on public.children
+  for each row execute function public.chispa_touch_updated_at();
