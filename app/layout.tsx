@@ -6,7 +6,7 @@ const baloo = Baloo_2({ variable: "--font-baloo", subsets: ["latin"] });
 const nunito = Nunito({ variable: "--font-nunito", subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Chispa — descubre con Lulo",
+  title: "Lulo — aprende lo que te da curiosidad",
   description: "Pequeñas aventuras, grandes descubrimientos. Aprende con Lulo, tu iguano explorador del Caribe colombiano.",
 };
 

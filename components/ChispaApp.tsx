@@ -42,6 +42,7 @@ import { canListen, listen, speak, stopSpeaking } from "@/lib/speech";
 import { AdventureArt, Icon } from "./AdventureArt";
 import { LearningCard } from "./LearningCard";
 import { LuloAvatar } from "./LuloAvatar";
+import { GreeterWords, LuloGreeter } from "./LuloGreeter";
 
 type Stage = "start" | "loading" | "lesson" | "quiz" | "done" | "error";
 const greetings = [
@@ -83,6 +84,7 @@ export default function ChispaApp() {
   const [lulo, dispatch] = useReducer(luloReducer, initialLuloState);
   const heading = useRef<HTMLHeadingElement>(null);
   const topicInput = useRef<HTMLInputElement>(null);
+  const bubbleRef = useRef<HTMLParagraphElement>(null);
   const adultPanel = useRef<HTMLElement>(null);
   const albumPanel = useRef<HTMLElement>(null);
   const adultToggle = useRef<HTMLButtonElement>(null);
@@ -272,6 +274,12 @@ export default function ChispaApp() {
     setHomeMessage("");
     dispatch("APP_READY");
   }
+
+  // Lulo greets by name first, then cycles through the other lines each time the child taps him.
+  const greetingLine = (index: number) =>
+    index === 0
+      ? `¡Ajá, ${profile.name}! ¡Qué bueno verte!`
+      : greetings[(index - 1) % greetings.length];
 
   // The tab bar switches between home and the three panels; only one is open at a time.
   function openTab(next: Tab) {
@@ -573,12 +581,12 @@ export default function ChispaApp() {
           className="brand"
           onClick={() => (active ? pause() : openTab("home"))}
           disabled={stage === "loading" || busy}
-          aria-label="Inicio de Chispa"
+          aria-label="Inicio de Lulo"
         >
           <span className="brand-lulo" aria-hidden="true">
             <LuloAvatar size={46} />
           </span>
-          Chispa
+          Lulo
         </button>
         <div className="topbar-actions">
           <span
@@ -801,16 +809,28 @@ export default function ChispaApp() {
                 </section>
               )}
             <section className="greeting-card" aria-labelledby="greeting-title">
-              <button
-                className="greeting-lulo"
-                onClick={() => setGreeting(greeting + 1)}
-                aria-label="Saludar a Lulo"
-              >
-                <LuloAvatar key={greeting} size={150} />
-              </button>
+              <div className="greeting-lulo">
+                <LuloGreeter
+                  line={greetingLine(greeting)}
+                  bubbleRef={bubbleRef}
+                  onGreet={() => {
+                    const next = greeting + 1;
+                    setGreeting(next);
+                    if (voiceAvailable) read(greetingLine(next));
+                  }}
+                  energy={Math.min(1, 0.4 + progress.stars / 30)}
+                  reduceMotion={preferences.reduceMotion}
+                  size={150}
+                />
+              </div>
               <div className="greeting-body">
-                <p className="greeting-bubble" role="status">
-                  {greetings[greeting % greetings.length]}
+                <p
+                  ref={bubbleRef}
+                  className="greeting-bubble"
+                  role="status"
+                  aria-live="polite"
+                >
+                  <GreeterWords line={greetingLine(greeting)} />
                 </p>
                 <h1 id="greeting-title" ref={heading} tabIndex={-1}>
                   ¡Hola, {profile.name}! ¿Qué quieres aprender hoy?

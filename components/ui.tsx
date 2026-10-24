@@ -9,10 +9,10 @@ import bundledImages from "@/public/demo/images.json";
 type Tone = "iguana" | "sea" | "mango" | "coral" | "plain";
 
 const TONES: Record<Tone, string> = {
-  iguana: "bg-iguana text-white",
-  sea: "bg-sea text-white",
+  iguana: "bg-iguana text-ink",
+  sea: "bg-sea text-ink",
   mango: "bg-mango text-ink",
-  coral: "bg-coral text-white",
+  coral: "bg-coral text-ink",
   plain: "bg-white text-ink",
 };
 
@@ -24,7 +24,7 @@ export function Button({
   return (
     <button
       {...props}
-      className={`min-h-14 rounded-2xl border-4 border-ink px-5 font-display text-xl font-bold shadow-[0_4px_0_#1F2A44] transition active:translate-y-1 active:shadow-none disabled:opacity-50 ${TONES[tone]} ${className}`}
+      className={`min-h-14 rounded-2xl border-4 border-ink px-5 font-display text-xl font-bold shadow-[0_4px_0_#0D0D0D] transition active:translate-y-1 active:shadow-none disabled:opacity-50 ${TONES[tone]} ${className}`}
     />
   );
 }
@@ -38,7 +38,7 @@ export function Card({
 }) {
   return (
     <div
-      className={`rounded-3xl border-4 border-ink bg-white p-5 shadow-[0_6px_0_#1F2A44] ${className}`}
+      className={`rounded-3xl border-4 border-ink bg-white p-5 shadow-[0_6px_0_#0D0D0D] ${className}`}
     >
       {children}
     </div>

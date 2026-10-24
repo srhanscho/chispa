@@ -41,7 +41,7 @@ export default function LoginPage() {
     <main className="app-shell login-shell">
       <header className="app-header">
         <Link href="/" className="brand">
-          chispa<span className="brand-dot">.</span>
+          lulo<span className="brand-dot">.</span>
         </Link>
         <Link href="/" className="text-button">
           Seguir sin cuenta

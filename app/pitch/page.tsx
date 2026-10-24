@@ -6,7 +6,7 @@ import { LuloAvatar } from "@/components/LuloAvatar";
 
 const slides = [
   {
-    title: "Chispa",
+    title: "Lulo",
     subtitle: "Aprender empieza con una pregunta",
     body: "Lulo acompaña a niñas y niños con clases cortas, voz y preguntas.",
     note: "0:00–0:25. Presenta a Lulo y el problema: una explicación puede no conectar. Queremos que la siguiente explicación use las señales del recorrido anterior.",
@@ -32,7 +32,7 @@ const slides = [
   {
     title: "Gemma y una experiencia que acompaña",
     subtitle: "Un prototipo con identidad del Caribe",
-    body: "Gemma explica y conversa. Chispa evalúa el recorrido y conserva el progreso. Un despliegue propio requiere verificar el modelo, la licencia y el hardware.",
+    body: "Gemma explica y conversa. Lulo evalúa el recorrido y conserva el progreso. Un despliegue propio requiere verificar el modelo, la licencia y el hardware.",
     note: "2:25–3:00. Cierra con la visión: Gemma enseña, evalúa y aprende de cada niño. Explica que la adaptación actual combina el motor del proyecto con el modelo. Invita a probar la demo.",
   },
 ];
@@ -57,7 +57,7 @@ export default function PitchPage() {
     >
       <header>
         <Link href="/" className="brand">
-          chispa.
+          lulo.
         </Link>
         <Link href="/" className="text-button">
           Abrir demo
@@ -72,7 +72,7 @@ export default function PitchPage() {
         aria-label={`${index + 1} de 5`}
       >
         <div>
-          <p className="eyebrow">CHISPA · PRESENTACIÓN DE 3 MINUTOS</p>
+          <p className="eyebrow">LULO · PRESENTACIÓN DE 3 MINUTOS</p>
           <h1>{slide.title}</h1>
           <h2>{slide.subtitle}</h2>
           <p>{slide.body}</p>

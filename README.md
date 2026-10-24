@@ -1,6 +1,6 @@
-# Chispa — learn with Lulo
+# Lulo — an AI tutor that learns how each kid learns
 
-Chispa is an AI tutor for kids aged 6–10. A child says what they want to learn ("¡dinosaurios!"), and Lulo, a curious young iguana from Barranquilla, builds a short lesson with pictures, reads it aloud, and ends with a quiz. An adaptive engine learns **how each child learns** and changes the teaching style of the next lesson.
+Lulo is an AI tutor for kids aged 6–10. A child says what they want to learn ("¡dinosaurios!"), and Lulo, a curious young iguana from Barranquilla, builds a short lesson with pictures, reads it aloud, and ends with a quiz. An adaptive engine learns **how each child learns** and changes the teaching style of the next lesson.
 
 Built for Hacktoberfest Barranquilla 2026. The backend supports **Gemma 4** through the Gemini API. The frontend uses the server routes by default, with bundled lesson fallbacks and an explicit demo mode that needs no API keys.
 
