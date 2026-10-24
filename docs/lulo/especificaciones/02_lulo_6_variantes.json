@@ -1,0 +1,167 @@
+{
+  "schema_version": "1.0",
+  "project": "Chispa",
+  "character_id": "chispa-lulo",
+  "purpose": "Prompts reutilizables para generar seis poses coherentes de Lulo antes de animarlo.",
+  "generator_instructions_es": [
+    "Sube lulo_referencia_original.png a la herramienta de imágenes.",
+    "Pega el campo image_prompt_en de la variante deseada.",
+    "Activa fondo transparente si la herramienta lo permite.",
+    "Revisa que el sombrero vueltiao, los ojos y la cola mantengan el diseño original.",
+    "Guarda el resultado con el nombre indicado en output_file."
+  ],
+  "variants": [
+    {
+      "id": "lulo_home",
+      "screen": "home",
+      "screen_title": "Inicio / bienvenida",
+      "description_es": "Lulo saluda con la mano, sostiene el libro cerrado contra el pecho",
+      "emotion_es": "feliz y acogedor",
+      "props_required": [
+        "hat",
+        "backpack",
+        "book"
+      ],
+      "transparent_background": true,
+      "art_direction": {
+        "pose_en": "gentle welcoming wave with one hand, holding blue book against chest",
+        "face_en": "joyful welcoming smile and soft eye contact",
+        "camera": "full body, 3/4 view, eye-level, center",
+        "clear_silhouette": true,
+        "ui_clear_space": "Even margins"
+      },
+      "image_prompt_en": "Use the attached canonical reference image of Lulo as the strict character design reference. Lulo is a very cute, loving, child-friendly anthropomorphic green iguana mascot from the Colombian Caribbean, with warm brown expressive eyes, small turquoise skin freckles, creamy pale-yellow belly, gentle orange dorsal spines, a long curled tail, small tan explorer backpack, blue teaching book, and a traditional Colombian sombrero vueltiao in woven black and beige geometric patterns. Keep the face, head-to-body ratio, colors, hat, and silhouette faithful to the same single character. Premium polished 2D kids educational mascot illustration, rounded forms, clean outlines, soft shading, friendly expressions, centered full-body, transparent background, NO text, NO watermark, no extra characters. Specific scene: gentle welcoming wave with one hand, holding blue book against chest. Expression: joyful welcoming smile and soft eye contact. Keep the character identical to the reference.",
+      "negative_prompt_en": "different character, Mexican sombrero, sunglasses, scary face, toothy aggressive smile, monster, photorealism, logos, watermarks, letters, captions, scenery, cropped feet, cropped hat, extra limbs, clutter",
+      "suggested_animation": "wave",
+      "ui_phrase_es": "¡Hola! ¿Qué quieres descubrir hoy?",
+      "output_file": "lulo_home.png",
+      "reference_image": "lulo_referencia_original.png"
+    },
+    {
+      "id": "lulo_loading",
+      "screen": "loading",
+      "screen_title": "Cargando clase",
+      "description_es": "Lulo piensa con curiosidad, una mano en el mentón",
+      "emotion_es": "curioso y concentrado",
+      "props_required": [
+        "hat",
+        "backpack"
+      ],
+      "transparent_background": true,
+      "art_direction": {
+        "pose_en": "one hand softly under chin, head tilted and curious eyes looking slightly up, tail relaxed",
+        "face_en": "thoughtful and cute, not worried",
+        "camera": "full body, 3/4 view, eye-level, center",
+        "clear_silhouette": true,
+        "ui_clear_space": "Even margins"
+      },
+      "image_prompt_en": "Use the attached canonical reference image of Lulo as the strict character design reference. Lulo is a very cute, loving, child-friendly anthropomorphic green iguana mascot from the Colombian Caribbean, with warm brown expressive eyes, small turquoise skin freckles, creamy pale-yellow belly, gentle orange dorsal spines, a long curled tail, small tan explorer backpack, blue teaching book, and a traditional Colombian sombrero vueltiao in woven black and beige geometric patterns. Keep the face, head-to-body ratio, colors, hat, and silhouette faithful to the same single character. Premium polished 2D kids educational mascot illustration, rounded forms, clean outlines, soft shading, friendly expressions, centered full-body, transparent background, NO text, NO watermark, no extra characters. Specific scene: one hand softly under chin, head tilted and curious eyes looking slightly up, tail relaxed. Expression: thoughtful and cute, not worried. Keep the character identical to the reference.",
+      "negative_prompt_en": "different character, Mexican sombrero, sunglasses, scary face, toothy aggressive smile, monster, photorealism, logos, watermarks, letters, captions, scenery, cropped feet, cropped hat, extra limbs, clutter",
+      "suggested_animation": "thinking",
+      "ui_phrase_es": "Estoy preparando algo chévere para ti…",
+      "output_file": "lulo_loading.png",
+      "reference_image": "lulo_referencia_original.png"
+    },
+    {
+      "id": "lulo_lesson",
+      "screen": "lesson",
+      "screen_title": "Clase / explicación",
+      "description_es": "Lulo abre un libro y señala suavemente hacia una tarjeta invisible a su lado",
+      "emotion_es": "amable y entusiasmado",
+      "props_required": [
+        "hat",
+        "backpack",
+        "book"
+      ],
+      "transparent_background": true,
+      "art_direction": {
+        "pose_en": "holding an open blue book and pointing gently toward an empty area at his right for future UI cards",
+        "face_en": "enthusiastic friendly teacher smile",
+        "camera": "full body, 3/4 view, eye-level, center",
+        "clear_silhouette": true,
+        "ui_clear_space": "Optional empty transparent margin on character’s right"
+      },
+      "image_prompt_en": "Use the attached canonical reference image of Lulo as the strict character design reference. Lulo is a very cute, loving, child-friendly anthropomorphic green iguana mascot from the Colombian Caribbean, with warm brown expressive eyes, small turquoise skin freckles, creamy pale-yellow belly, gentle orange dorsal spines, a long curled tail, small tan explorer backpack, blue teaching book, and a traditional Colombian sombrero vueltiao in woven black and beige geometric patterns. Keep the face, head-to-body ratio, colors, hat, and silhouette faithful to the same single character. Premium polished 2D kids educational mascot illustration, rounded forms, clean outlines, soft shading, friendly expressions, centered full-body, transparent background, NO text, NO watermark, no extra characters. Specific scene: holding an open blue book and pointing gently toward an empty area at his right for future UI cards. Expression: enthusiastic friendly teacher smile. Keep the character identical to the reference.",
+      "negative_prompt_en": "different character, Mexican sombrero, sunglasses, scary face, toothy aggressive smile, monster, photorealism, logos, watermarks, letters, captions, scenery, cropped feet, cropped hat, extra limbs, clutter",
+      "suggested_animation": "explain",
+      "ui_phrase_es": "¡Mira! Te lo explico con un ejemplo.",
+      "output_file": "lulo_lesson.png",
+      "reference_image": "lulo_referencia_original.png"
+    },
+    {
+      "id": "lulo_quiz",
+      "screen": "quiz",
+      "screen_title": "Trivia / pregunta",
+      "description_es": "Lulo hace una pregunta, inclina la cabeza y levanta un dedo",
+      "emotion_es": "expectante y curioso",
+      "props_required": [
+        "hat",
+        "backpack"
+      ],
+      "transparent_background": true,
+      "art_direction": {
+        "pose_en": "slightly tilting his head, holding up one finger as a playful question gesture",
+        "face_en": "curious encouraging smile and wide attentive eyes",
+        "camera": "full body, 3/4 view, eye-level, center",
+        "clear_silhouette": true,
+        "ui_clear_space": "Even margins"
+      },
+      "image_prompt_en": "Use the attached canonical reference image of Lulo as the strict character design reference. Lulo is a very cute, loving, child-friendly anthropomorphic green iguana mascot from the Colombian Caribbean, with warm brown expressive eyes, small turquoise skin freckles, creamy pale-yellow belly, gentle orange dorsal spines, a long curled tail, small tan explorer backpack, blue teaching book, and a traditional Colombian sombrero vueltiao in woven black and beige geometric patterns. Keep the face, head-to-body ratio, colors, hat, and silhouette faithful to the same single character. Premium polished 2D kids educational mascot illustration, rounded forms, clean outlines, soft shading, friendly expressions, centered full-body, transparent background, NO text, NO watermark, no extra characters. Specific scene: slightly tilting his head, holding up one finger as a playful question gesture. Expression: curious encouraging smile and wide attentive eyes. Keep the character identical to the reference.",
+      "negative_prompt_en": "different character, Mexican sombrero, sunglasses, scary face, toothy aggressive smile, monster, photorealism, logos, watermarks, letters, captions, scenery, cropped feet, cropped hat, extra limbs, clutter",
+      "suggested_animation": "quiz_prompt",
+      "ui_phrase_es": "¿Qué crees que sucederá?",
+      "output_file": "lulo_quiz.png",
+      "reference_image": "lulo_referencia_original.png"
+    },
+    {
+      "id": "lulo_encourage",
+      "screen": "encourage",
+      "screen_title": "No entendí / reexplicación",
+      "description_es": "Lulo abre las manos con paciencia, escuchando sin juzgar",
+      "emotion_es": "cariñoso y tranquilizador",
+      "props_required": [
+        "hat",
+        "backpack"
+      ],
+      "transparent_background": true,
+      "art_direction": {
+        "pose_en": "open palms in a reassuring gentle teaching gesture, leaning forward a little empathetically",
+        "face_en": "tender supportive expression, gentle half smile",
+        "camera": "full body, 3/4 view, eye-level, center",
+        "clear_silhouette": true,
+        "ui_clear_space": "Even margins"
+      },
+      "image_prompt_en": "Use the attached canonical reference image of Lulo as the strict character design reference. Lulo is a very cute, loving, child-friendly anthropomorphic green iguana mascot from the Colombian Caribbean, with warm brown expressive eyes, small turquoise skin freckles, creamy pale-yellow belly, gentle orange dorsal spines, a long curled tail, small tan explorer backpack, blue teaching book, and a traditional Colombian sombrero vueltiao in woven black and beige geometric patterns. Keep the face, head-to-body ratio, colors, hat, and silhouette faithful to the same single character. Premium polished 2D kids educational mascot illustration, rounded forms, clean outlines, soft shading, friendly expressions, centered full-body, transparent background, NO text, NO watermark, no extra characters. Specific scene: open palms in a reassuring gentle teaching gesture, leaning forward a little empathetically. Expression: tender supportive expression, gentle half smile. Keep the character identical to the reference.",
+      "negative_prompt_en": "different character, Mexican sombrero, sunglasses, scary face, toothy aggressive smile, monster, photorealism, logos, watermarks, letters, captions, scenery, cropped feet, cropped hat, extra limbs, clutter",
+      "suggested_animation": "reassure",
+      "ui_phrase_es": "¡Casi! Probemos explicarlo de otra forma.",
+      "output_file": "lulo_encourage.png",
+      "reference_image": "lulo_referencia_original.png"
+    },
+    {
+      "id": "lulo_reward",
+      "screen": "reward",
+      "screen_title": "Premio / logro",
+      "description_es": "Lulo da un pequeño salto de emoción celebrando con estrellas decorativas separadas",
+      "emotion_es": "orgulloso y muy alegre",
+      "props_required": [
+        "hat",
+        "backpack"
+      ],
+      "transparent_background": true,
+      "art_direction": {
+        "pose_en": "small celebratory jump, one hand raised, dynamic curled tail, three separate tiny star shapes around but not covering him",
+        "face_en": "excited joyful open-mouth smile",
+        "camera": "full body, 3/4 view, eye-level, center",
+        "clear_silhouette": true,
+        "ui_clear_space": "Even margins"
+      },
+      "image_prompt_en": "Use the attached canonical reference image of Lulo as the strict character design reference. Lulo is a very cute, loving, child-friendly anthropomorphic green iguana mascot from the Colombian Caribbean, with warm brown expressive eyes, small turquoise skin freckles, creamy pale-yellow belly, gentle orange dorsal spines, a long curled tail, small tan explorer backpack, blue teaching book, and a traditional Colombian sombrero vueltiao in woven black and beige geometric patterns. Keep the face, head-to-body ratio, colors, hat, and silhouette faithful to the same single character. Premium polished 2D kids educational mascot illustration, rounded forms, clean outlines, soft shading, friendly expressions, centered full-body, transparent background, NO text, NO watermark, no extra characters. Specific scene: small celebratory jump, one hand raised, dynamic curled tail, three separate tiny star shapes around but not covering him. Expression: excited joyful open-mouth smile. Keep the character identical to the reference.",
+      "negative_prompt_en": "different character, Mexican sombrero, sunglasses, scary face, toothy aggressive smile, monster, photorealism, logos, watermarks, letters, captions, scenery, cropped feet, cropped hat, extra limbs, clutter",
+      "suggested_animation": "celebrate",
+      "ui_phrase_es": "¡Lo lograste! ¡Qué chévere!",
+      "output_file": "lulo_reward.png",
+      "reference_image": "lulo_referencia_original.png"
+    }
+  ]
+}

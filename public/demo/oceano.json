@@ -1,0 +1,18 @@
+{
+  "topic": "El océano",
+  "style": "story",
+  "level": "explorer",
+  "cover": { "kind": "illustration", "query": "friendly ocean exploration" },
+  "cards": [
+    { "title": "Un mundo bajo el agua", "text": "En el océano viven animales de muchas formas y tamaños. Hay peces, delfines y muchísimos seres más.", "speech": "¡Vamos al océano! Bajo el agua viven peces, delfines y muchísimos seres más.", "image": { "kind": "illustration", "query": "fish and dolphin underwater" } },
+    { "title": "¿Cómo respira un pez?", "text": "Los peces usan branquias para tomar el oxígeno del agua. Así pueden respirar bajo el agua.", "speech": "Los peces respiran con branquias. Las branquias toman el oxígeno del agua.", "image": { "kind": "illustration", "query": "fish gills underwater" } },
+    { "title": "El delfín necesita aire", "text": "El delfín es un mamífero. Respira con pulmones y sube a la superficie para tomar aire.", "speech": "El delfín es un mamífero y tiene pulmones. Por eso sube a la superficie para tomar aire.", "image": { "kind": "illustration", "query": "dolphin breathing at the surface" } },
+    { "title": "Podemos cuidar su hogar", "text": "La basura puede hacer daño a los animales del océano. Poner nuestros residuos en el lugar correcto ayuda a cuidar su hogar.", "speech": "Podemos ayudar al océano. Ponemos nuestros residuos en el lugar correcto para que no lleguen al agua.", "image": { "kind": "illustration", "query": "clean ocean and caring for marine animals" } }
+  ],
+  "quiz": [
+    { "question": "¿Con qué respiran los peces?", "options": ["Con alas", "Con branquias", "Con patas"], "answerIndex": 1, "hint": "Toman el oxígeno del agua.", "reexplain": "Las branquias son como unas herramientas para tomar el oxígeno del agua. Los peces las usan para respirar." },
+    { "question": "¿Por qué el delfín sube a la superficie?", "options": ["Para tomar aire", "Para caminar", "Para volar"], "answerIndex": 0, "hint": "Tiene pulmones, como nosotros.", "reexplain": "El delfín respira aire con sus pulmones. Tiene que subir a la superficie para respirar." },
+    { "question": "¿Qué ayuda a cuidar el océano?", "options": ["Dejar bolsas en la playa", "Tirar basura al agua", "Poner los residuos en su lugar"], "answerIndex": 2, "hint": "Queremos que la basura no llegue al agua.", "reexplain": "Cuando ponemos los residuos en el lugar correcto, ayudamos a que no terminen en el agua y dañen a los animales." }
+  ],
+  "sticker": { "name": "Guardián del océano", "query": "friendly ocean guardian badge" }
+}

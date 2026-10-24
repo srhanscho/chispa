@@ -2,9 +2,9 @@ import type { ImageResult } from "./commons";
 import { keywordsOf, searchQueries, type QueryOptions } from "./query";
 import type { ImageRequest } from "./schema";
 
-export const FALLBACK_IMAGE: ImageResult = { url: "/lulo.svg", source: "fallback" };
+export const FALLBACK_IMAGE: ImageResult = { url: "/assets/lulo/lulo.webp", source: "fallback" };
 // Gemma often puts the mascot in covers and stickers. Lulo's own artwork beats any web photo of an iguana.
-export const MASCOT_IMAGE: ImageResult = { url: "/lulo.svg", source: "mascot" };
+export const MASCOT_IMAGE: ImageResult = { url: "/assets/lulo/lulo.webp", source: "mascot" };
 
 const MASCOT_WORDS = new Set(["iguana", "iguanas", "iguano", "lulo", "lizard"]);
 const isMascot = (query: string) => keywordsOf(query).some((word) => MASCOT_WORDS.has(word));

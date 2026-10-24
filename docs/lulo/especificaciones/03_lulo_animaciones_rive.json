@@ -1,0 +1,156 @@
+{
+  "schema_version": "1.0",
+  "project": "Chispa",
+  "character_id": "chispa-lulo",
+  "status": "Especificación de animación; NO es un archivo nativo de Rive ni un GIF renderizado.",
+  "format_target": "Rive .riv interactivo (preferible a GIF para eventos de aplicación)",
+  "reference": "lulo_referencia_original.png",
+  "design_canvas": {
+    "width": 1024,
+    "height": 1024,
+    "background": "transparent",
+    "character_centered": true
+  },
+  "required_separated_layers": [
+    {
+      "name": "body",
+      "pivot": "hips"
+    },
+    {
+      "name": "head",
+      "pivot": "base_of_neck"
+    },
+    {
+      "name": "left_arm",
+      "pivot": "left_shoulder"
+    },
+    {
+      "name": "right_arm",
+      "pivot": "right_shoulder"
+    },
+    {
+      "name": "left_hand",
+      "pivot": "wrist"
+    },
+    {
+      "name": "right_hand",
+      "pivot": "wrist"
+    },
+    {
+      "name": "left_eye",
+      "pivot": "eye_center"
+    },
+    {
+      "name": "right_eye",
+      "pivot": "eye_center"
+    },
+    {
+      "name": "upper_eyelids",
+      "pivot": "top_of_eye"
+    },
+    {
+      "name": "mouth_closed",
+      "pivot": "jaw"
+    },
+    {
+      "name": "mouth_open",
+      "pivot": "jaw"
+    },
+    {
+      "name": "tail",
+      "pivot": "base_of_tail"
+    },
+    {
+      "name": "hat",
+      "pivot": "head"
+    },
+    {
+      "name": "backpack",
+      "pivot": "torso"
+    },
+    {
+      "name": "book",
+      "pivot": "hands"
+    },
+    {
+      "name": "stars",
+      "pivot": "outside_character"
+    }
+  ],
+  "animations": [
+    {
+      "id": "idle",
+      "description": "Respira suave, parpadea y mueve levemente la cola.",
+      "duration_ms": 3600,
+      "loop": true,
+      "priority": "P0",
+      "details": "gentle bobbing 2–3 px; one blink each 3–5 s, slightly varied"
+    },
+    {
+      "id": "wave",
+      "description": "Levanta la mano y saluda dos veces, vuelve a reposo.",
+      "duration_ms": 1500,
+      "loop": false,
+      "priority": "P0",
+      "details": "2 wrist arcs, cheerful head tilt, easing in-out"
+    },
+    {
+      "id": "thinking",
+      "description": "Inclina la cabeza, mira arriba y apoya una mano en el mentón.",
+      "duration_ms": 2800,
+      "loop": true,
+      "priority": "P1",
+      "details": "subtle eye movement, slow tail motion"
+    },
+    {
+      "id": "explain",
+      "description": "Señala a la tarjeta mientras abre el libro y mueve la boca.",
+      "duration_ms": 2400,
+      "loop": true,
+      "priority": "P0",
+      "details": "small hand motion, small mouth open/close; never twitchy"
+    },
+    {
+      "id": "talking",
+      "description": "Movimiento de boca y cabeza durante la voz del navegador.",
+      "duration_ms": 800,
+      "loop": true,
+      "priority": "P0",
+      "details": "simple two/three mouth shapes, slow head nods; optional audio amplitude sync later"
+    },
+    {
+      "id": "quiz_prompt",
+      "description": "Levanta un dedo, pestañea y espera una respuesta.",
+      "duration_ms": 1700,
+      "loop": false,
+      "priority": "P1",
+      "details": "one gentle gesture, holds listening posture"
+    },
+    {
+      "id": "reassure",
+      "description": "Sonrisa paciente y manos abiertas cuando el niño no entiende.",
+      "duration_ms": 1800,
+      "loop": false,
+      "priority": "P0",
+      "details": "subtle forward lean, soft open palms, no frown"
+    },
+    {
+      "id": "celebrate",
+      "description": "Un salto corto y 3 estrellas alrededor, luego reposo.",
+      "duration_ms": 2100,
+      "loop": false,
+      "priority": "P0",
+      "details": "small joyful bounce, hat follows head, no exaggerated shaking"
+    }
+  ],
+  "interaction_principles": {
+    "reduced_motion": "If prefers-reduced-motion is active, use static pose or only slow blink.",
+    "safe_for_children": [
+      "No flashes",
+      "No rapid strobing",
+      "Do not animate continuously when user needs to read quiz answers"
+    ],
+    "accessibility": "Keep educational content outside the animation; mascot never conveys essential info alone."
+  },
+  "note": "Una sola imagen PNG no permite mover individualmente ojos, manos o boca. Hay que ilustrar/separar estas partes en capas (ideal SVG/PSD) y luego montar el rig en Rive."
+}

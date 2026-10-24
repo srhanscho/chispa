@@ -1,0 +1,68 @@
+{
+  "schema_version": "1.0",
+  "character_id": "chispa-lulo",
+  "name": "Lulo",
+  "project": "Chispa",
+  "role": "Mascota y guía pedagógico para niños de 6 a 10 años",
+  "reference_image": "lulo_referencia_original.png",
+  "reference_is_canonical": true,
+  "personality": [
+    "cariñoso",
+    "paciente",
+    "juguetón",
+    "curioso",
+    "empático",
+    "animador sin juzgar"
+  ],
+  "narrative": {
+    "origin": "Barranquilla, Caribe colombiano",
+    "voice": "Español colombiano, frases breves y claras",
+    "coastal_flavor": "Expresiones costeñas suaves y ocasionales, nunca exageradas",
+    "example_phrase": "¡Ajá! Mira qué chévere lo que acabas de descubrir."
+  },
+  "appearance_lock": {
+    "species": "Iguana antropomórfica infantil, NO dinosaurio ni camaleón",
+    "silhouette": "Cabeza grande y redondeada, ojos grandes, cuerpo compacto, cola larga en espiral",
+    "skin": "Verde lima brillante con manchas pequeñas turquesa",
+    "belly": "Crema amarillo muy suave",
+    "eyes": "Grandes, marrón cálido, brillantes, mirada bondadosa",
+    "expression": "Sonrisa cálida; jamás gesto burlón, agresivo o sarcástico",
+    "back_spines": "Cresta de pequeñas espinas triangulares anaranjadas, redondeadas y amistosas",
+    "hat": "Sombrero vueltiao tradicional colombiano: tejido de franjas y dibujos geométricos NEGROS y beige natural, ala ancha",
+    "backpack": "Mochila pequeña de explorador marrón/caramelo con tirantes",
+    "book": "Libro azul turquesa, diseño simple sin texto",
+    "feet_hands": "Manos y pies verdes, uñas oscuras pequeñas y redondeadas, aspecto no amenazante",
+    "style": "Ilustración de mascota infantil 2D premium, contornos definidos, volúmenes suaves y formas redondeadas"
+  },
+  "palette": {
+    "skin_main": "#86CD45",
+    "skin_light": "#B7E46B",
+    "belly": "#F4F2B9",
+    "spots": "#29B49B",
+    "spines": "#F08B2C",
+    "eyes": "#704423",
+    "hat_straw": "#E9BF72",
+    "hat_ink": "#25231F",
+    "backpack": "#B4773C",
+    "book": "#146E83",
+    "outline": "#1E261A",
+    "background_default": "transparent"
+  },
+  "identity_rules": [
+    "Conservar la forma del hocico, los ojos, la sonrisa, las espinas y la cola de la referencia.",
+    "Conservar el sombrero vueltiao auténtico; NO sustituirlo por sombrero mexicano.",
+    "Mantener los colores y las proporciones entre versiones.",
+    "Hacer la expresión emotiva sin perder el parecido con Lulo.",
+    "Evitar texto, logotipos, marcas de agua, armas o elementos intimidantes.",
+    "Generar como personaje completo y recortable para interfaz, sin escenario complejo."
+  ],
+  "recommended_output": {
+    "format": "PNG",
+    "background": "transparent",
+    "canvas": "2048x2048",
+    "safe_margin_percent": 8,
+    "primary_orientation": "3/4 frontal",
+    "full_body": true
+  },
+  "consistency_instruction": "Adjunta SIEMPRE lulo_referencia_original.png junto al prompt; el JSON por sí solo no garantiza identidad visual exacta."
+}
