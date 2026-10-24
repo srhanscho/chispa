@@ -1,0 +1,53 @@
+{
+  "topic": "Dinosaurios",
+  "style": "story",
+  "level": "explorer",
+  "cover": { "kind": "illustration", "query": "friendly green iguana explorer next to a smiling T-Rex" },
+  "cards": [
+    {
+      "title": "¿Quién era el T-Rex?",
+      "text": "Hace muchísimos años vivía un dinosaurio enorme llamado Rex. Era tan largo como un bus. Caminaba en dos patas fuertes.",
+      "speech": "¡Ajá! Hace muchísimos años vivía un dinosaurio enorme llamado Rex. Era tan largo como un bus, y caminaba en dos patas fuertes.",
+      "image": { "kind": "photo", "query": "Tyrannosaurus rex skeleton museum" }
+    },
+    {
+      "title": "¿Qué comía Rex?",
+      "text": "Rex era carnívoro: comía carne. Tenía dientes tan grandes como un banano. Con ellos podía morder muy fuerte.",
+      "speech": "Rex era carnívoro, o sea, comía carne. Tenía dientes tan grandes como un banano.",
+      "image": { "kind": "photo", "query": "Tyrannosaurus rex teeth fossil" }
+    },
+    {
+      "title": "Sus bracitos",
+      "text": "Rex tenía brazos muy cortitos. ¡No alcanzaba a tocarse la cabeza! Los científicos creen que los usaba para sujetar cosas.",
+      "speech": "Rex tenía unos bracitos muy cortos. ¡No alcanzaba ni a tocarse la cabeza!",
+      "image": { "kind": "photo", "query": "Tyrannosaurus rex arm fossil" }
+    },
+    {
+      "title": "¿Dónde están hoy?",
+      "text": "Los dinosaurios desaparecieron hace 66 millones de años. Hoy encontramos sus huesos, llamados fósiles. ¡Y las aves son sus parientes!",
+      "speech": "Los dinosaurios desaparecieron hace muchísimo tiempo. Hoy encontramos sus huesos, que se llaman fósiles. ¡Y las aves son sus parientes!",
+      "image": { "kind": "photo", "query": "dinosaur fossil excavation" }
+    }
+  ],
+  "quiz": [
+    {
+      "question": "¿Qué comía el T-Rex?",
+      "options": ["Hojas", "Carne", "Frutas"],
+      "answerIndex": 1,
+      "hint": "Piensa en sus dientes afilados."
+    },
+    {
+      "question": "¿Cómo eran los brazos del T-Rex?",
+      "options": ["Muy cortos", "Muy largos", "No tenía brazos"],
+      "answerIndex": 0,
+      "hint": "No alcanzaba a tocarse la cabeza."
+    },
+    {
+      "question": "¿Cómo se llaman los huesos de dinosaurio que encontramos hoy?",
+      "options": ["Piedras", "Conchas", "Fósiles"],
+      "answerIndex": 2,
+      "hint": "Empieza con F."
+    }
+  ],
+  "sticker": { "name": "T-Rex", "query": "cute cartoon T-Rex sticker" }
+}

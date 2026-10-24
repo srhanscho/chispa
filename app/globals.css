@@ -1,0 +1,25 @@
+@import "tailwindcss";
+
+/* Chispa brand kit (see the PRD): Caribbean palette, rounded type, big touch targets. */
+@theme {
+  --color-iguana: #3fa34d;
+  --color-sea: #14a3b8;
+  --color-mango: #ffc93c;
+  --color-coral: #ff6b5b;
+  --color-sand: #fff6e5;
+  --color-ink: #1f2a44;
+  --font-display: var(--font-baloo);
+  --font-sans: var(--font-nunito);
+}
+
+body {
+  background: var(--color-sand);
+  color: var(--color-ink);
+  font-family: var(--font-sans), system-ui, sans-serif;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display), system-ui, sans-serif;
+}
