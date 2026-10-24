@@ -2776,3 +2776,375 @@ progress {
 .tutor-chat header > .lulo-avatar {
   flex: 0 0 auto;
 }
+
+/* ---------------------------------------------------------------------------
+   App shell: compact top bar, dashboard home, bottom tab bar, focused lesson.
+   --------------------------------------------------------------------------- */
+.app-shell {
+  min-height: 100dvh;
+  padding-bottom: 120px;
+}
+.app-shell[data-mode="focus"] {
+  padding-bottom: 40px;
+}
+
+.app-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 9;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 -40px 8px;
+  padding: 10px 40px;
+  background: #fff6e5;
+  border-bottom: var(--outline-thin);
+}
+.app-topbar .brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 0;
+  background: none;
+  padding: 0;
+  font-size: 30px;
+  font-weight: 800;
+  color: #3fa34d;
+}
+.brand-lulo {
+  display: inline-flex;
+}
+.brand-lulo .lulo-avatar {
+  pointer-events: none;
+}
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.learner-chip select {
+  min-height: 46px;
+  padding: 6px 34px 6px 14px;
+  border: var(--outline);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--ink);
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-weight: 800;
+  font-size: 16px;
+  box-shadow: var(--drop);
+}
+.icon-button {
+  display: inline-grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border: var(--outline);
+  border-radius: 14px;
+  background: #fff;
+  color: var(--ink);
+  box-shadow: var(--drop);
+  list-style: none;
+}
+.icon-button::-webkit-details-marker {
+  display: none;
+}
+.icon-button:active {
+  transform: translateY(4px);
+  box-shadow: none;
+}
+
+/* Home: greeting card with the question box */
+.greeting-card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 22px;
+  align-items: end;
+  margin: 18px 0 26px;
+  padding: 24px 28px 26px 18px;
+  border: var(--outline);
+  border-radius: 28px;
+  background: #fff;
+  box-shadow: var(--drop-card);
+}
+.greeting-lulo {
+  align-self: end;
+  border: 0;
+  padding: 0;
+  background: none;
+  margin-bottom: -26px;
+}
+.greeting-body {
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+}
+.greeting-bubble {
+  justify-self: start;
+  position: relative;
+  padding: 8px 14px;
+  border: var(--outline-thin);
+  border-radius: 16px 16px 16px 4px;
+  background: #ffc93c;
+  font-weight: 800;
+  font-size: 15px;
+}
+.greeting-card h1 {
+  font-size: clamp(24px, 3.2vw, 34px);
+  line-height: 1.15;
+}
+.ask-form {
+  display: flex;
+  gap: 12px;
+}
+.ask-form .topic-input {
+  flex: 1;
+  min-height: 60px;
+  overflow: hidden;
+}
+.ask-form .topic-input input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  padding: 0 18px;
+  background: transparent;
+  font-size: 19px;
+  outline: none;
+}
+.ask-form .topic-input:focus-within {
+  border-color: #14a3b8;
+}
+.ask-form .mic-button {
+  min-width: 60px;
+}
+.ask-form .primary-button {
+  min-height: 60px;
+  padding: 0 24px;
+  font-size: 20px;
+}
+.quick-topics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.topic-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 6px 16px;
+  border: var(--outline-thin);
+  border-radius: 999px;
+  background: #fff6e5;
+  color: var(--ink);
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-weight: 800;
+  font-size: 16px;
+  box-shadow: 0 3px 0 var(--ink);
+}
+.topic-chip:active {
+  transform: translateY(3px);
+  box-shadow: none;
+}
+.chip-surprise {
+  background: #14a3b8;
+  color: #fff;
+}
+
+/* Home: sections read like app modules, not landing sections */
+.explore-section .section-heading {
+  align-items: baseline;
+}
+.explore-section h2,
+.suggestion-section h2 {
+  font-size: 26px;
+}
+.resume-banner {
+  margin: 0 0 22px;
+}
+
+/* Panels opened from the tab bar fill the screen like a tab's content */
+.drawer {
+  margin-top: 18px;
+}
+.family-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+/* Bottom tab bar: full width on phones, a floating dock on larger screens */
+.app-tabbar {
+  position: fixed;
+  left: 50%;
+  bottom: 16px;
+  z-index: 10;
+  transform: translateX(-50%);
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  width: min(560px, calc(100vw - 32px));
+  padding: 8px;
+  border: var(--outline);
+  border-radius: 24px;
+  background: #fff;
+  box-shadow: var(--drop-card);
+}
+.tab-button {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  min-height: 58px;
+  padding: 6px 4px;
+  border: 3px solid transparent;
+  border-radius: 16px;
+  background: none;
+  color: var(--ink);
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-weight: 800;
+  font-size: 14px;
+}
+.tab-button[aria-current="page"] {
+  border-color: var(--ink);
+  background: #3fa34d;
+  color: #fff;
+}
+
+/* Focused lesson: a slim bar with exit, steps and topic; the tab bar is hidden */
+.focus-bar {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 16px;
+  margin: 10px 0 18px;
+}
+.focus-bar .journey-trail {
+  margin: 0;
+  justify-content: center;
+}
+.focus-topic {
+  padding: 6px 14px;
+  border: var(--outline-thin);
+  border-radius: 999px;
+  background: #fff;
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-weight: 800;
+}
+.app-shell[data-mode="focus"] .topbar-actions .learner-chip,
+.app-shell[data-mode="focus"] .star-counter {
+  opacity: 0.6;
+}
+
+@media (max-width: 640px) {
+  .app-topbar {
+    margin: 0 -20px 6px;
+    padding: 8px 20px;
+  }
+  .app-topbar .brand {
+    font-size: 24px;
+  }
+  .greeting-card {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    padding: 18px;
+    margin-top: 8px;
+  }
+  .greeting-lulo {
+    display: none;
+  }
+  .greeting-card h1 {
+    font-size: 24px;
+  }
+  .ask-form {
+    flex-direction: column;
+  }
+  .ask-form .primary-button {
+    width: 100%;
+  }
+  .topic-grid {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    gap: 14px;
+    margin: 0 -20px;
+    padding: 4px 20px 14px;
+  }
+  .topic-grid .topic-tile {
+    flex: 0 0 72%;
+    scroll-snap-align: start;
+  }
+  .app-tabbar {
+    bottom: 0;
+    width: 100vw;
+    border-width: 4px 0 0;
+    border-radius: 22px 22px 0 0;
+    padding: 8px 10px calc(8px + env(safe-area-inset-bottom));
+    box-shadow: none;
+  }
+  .focus-bar {
+    grid-template-columns: auto 1fr;
+  }
+  .focus-topic {
+    display: none;
+  }
+}
+
+.greeting-card h1 {
+  font-weight: 800;
+}
+@media (max-width: 640px) {
+  .topic-grid .topic-tile {
+    display: flex;
+    flex-direction: column;
+    flex: 0 0 78%;
+  }
+  .topic-grid .topic-picture {
+    height: 130px;
+  }
+  .topic-grid .topic-copy {
+    padding: 14px 16px 16px;
+  }
+  .app-topbar .brand {
+    font-size: 22px;
+    gap: 4px;
+  }
+  .brand-lulo .lulo-avatar {
+    width: 36px !important;
+  }
+  .topbar-actions {
+    gap: 8px;
+  }
+  .learner-chip select {
+    min-height: 42px;
+    max-width: 118px;
+    font-size: 15px;
+  }
+  .icon-button {
+    width: 42px;
+    height: 42px;
+  }
+  .star-counter {
+    min-height: 42px;
+    padding: 6px 12px;
+  }
+}
+
+/* Panels opened from tabs: programmatic focus without a ring, and not hidden under the sticky top bar */
+.drawer:focus {
+  outline: none;
+}
+.drawer {
+  scroll-margin-top: 90px;
+}
+@media (max-width: 640px) {
+  .drawer .section-heading {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+  }
+  .drawer {
+    padding: 20px;
+  }
+}

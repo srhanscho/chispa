@@ -50,6 +50,15 @@ const greetings = [
   "Vamos a tu ritmo. ¡Yo te acompaño!",
 ];
 
+type Tab = "home" | "courses" | "album" | "family";
+
+const TABS: { id: Tab; label: string; icon: "home" | "book" | "star" | "family" }[] = [
+  { id: "home", label: "Inicio", icon: "home" },
+  { id: "courses", label: "Mis cursos", icon: "book" },
+  { id: "album", label: "Álbum", icon: "star" },
+  { id: "family", label: "Familia", icon: "family" },
+];
+
 export default function ChispaApp() {
   const learners = useLearners();
   const { profile } = learners;
@@ -87,6 +96,7 @@ export default function ChispaApp() {
   const readCounts = useRef(new Map<string, number>());
   const stopListening = useRef<(() => void) | undefined>(undefined);
   const active = stage === "lesson" || stage === "quiz";
+  const tab: Tab = coursesOpen ? "courses" : albumOpen ? "album" : adultOpen ? "family" : "home";
 
   useEffect(() => {
     // Read browser capabilities and local demo data only after hydration.
@@ -252,6 +262,14 @@ export default function ChispaApp() {
     setStage("start");
     setHomeMessage("");
     dispatch("APP_READY");
+  }
+
+  // The tab bar switches between home and the three panels; only one is open at a time.
+  function openTab(next: Tab) {
+    setCoursesOpen(next === "courses");
+    setAlbumOpen(next === "album");
+    setAdultOpen(next === "family");
+    if (next === "home" && stage === "done") pause();
   }
 
   function resumeJourney() {
@@ -534,25 +552,26 @@ export default function ChispaApp() {
   return (
     <main
       className="app-shell"
+      data-mode={active || stage === "loading" ? "focus" : "browse"}
       data-large-text={preferences.largeText}
       data-reduce-motion={preferences.reduceMotion}
     >
       <a className="skip-link" href="#adventure">
         Saltar a la aventura
       </a>
-      <header className="app-header">
+      <header className="app-topbar">
         <button
           className="brand"
-          onClick={pause}
+          onClick={() => (active ? pause() : openTab("home"))}
           disabled={stage === "loading" || busy}
           aria-label="Inicio de Chispa"
         >
-          <span className="brand-spark">
-            <Icon name="spark" size={32} />
+          <span className="brand-lulo" aria-hidden="true">
+            <LuloAvatar size={46} />
           </span>
-          chispa<span className="brand-dot">.</span>
+          Chispa
         </button>
-        <nav className="header-actions" aria-label="Mi espacio">
+        <div className="topbar-actions">
           <span
             className="star-counter"
             aria-label={`${progress.stars} estrellas`}
@@ -560,23 +579,26 @@ export default function ChispaApp() {
             <Icon name="star" size={19} />
             <strong>{progress.stars}</strong>
           </span>
-          <button
-            ref={albumToggle}
-            className="header-button"
-            aria-expanded={albumOpen}
-            aria-controls="album-panel"
-            onClick={() => {
-              setAlbumOpen(!albumOpen);
-              setAdultOpen(false);
-            }}
-          >
-            <Icon name="book" />
-            <span>Mi álbum</span>
-          </button>
+          <label className="learner-chip">
+            <span className="sr-only">Perfil de aprendizaje</span>
+            <select
+              value={profile.id}
+              disabled={active || stage === "loading" || busy}
+              onChange={(event) => {
+                learners.setActiveId(event.target.value);
+                setCoursesOpen(false);
+              }}
+            >
+              {learners.profiles.map((entry) => (
+                <option key={entry.id} value={entry.id}>
+                  {entry.name}
+                </option>
+              ))}
+            </select>
+          </label>
           <details className="settings-menu">
-            <summary className="header-button">
+            <summary className="icon-button" aria-label="Lectura y movimiento">
               <Icon name="settings" />
-              <span>Lectura y movimiento</span>
             </summary>
             <div className="settings-panel">
               <strong>A tu manera</strong>
@@ -613,62 +635,8 @@ export default function ChispaApp() {
               </small>
             </div>
           </details>
-        </nav>
+        </div>
       </header>
-
-      <div className="learner-toolbar">
-        <label>
-          Aprendo como
-          <select
-            aria-label="Perfil de aprendizaje"
-            value={profile.id}
-            disabled={active || stage === "loading" || busy}
-            onChange={(event) => {
-              learners.setActiveId(event.target.value);
-              setCoursesOpen(false);
-            }}
-          >
-            {learners.profiles.map((entry) => (
-              <option key={entry.id} value={entry.id}>
-                {entry.name} · {entry.age} años
-              </option>
-            ))}
-          </select>
-        </label>
-        <button
-          className="secondary-button"
-          aria-expanded={coursesOpen}
-          disabled={active || stage === "loading"}
-          onClick={() => {
-            setCoursesOpen(!coursesOpen);
-            setAdultOpen(false);
-          }}
-        >
-          Mis cursos
-        </button>
-        {learners.loginAvailable && !learners.signedIn && (
-          <Link href="/login" className="text-button">
-            Para papás · Entrar
-          </Link>
-        )}
-        {learners.signedIn && (
-          <button
-            className="text-button"
-            disabled={active || stage === "loading"}
-            onClick={() =>
-              void learners
-                .signOut()
-                .catch(() =>
-                  learners.setAccountMessage(
-                    "No pudimos cerrar la sesión. Inténtalo de nuevo.",
-                  ),
-                )
-            }
-          >
-            Cerrar sesión familiar
-          </button>
-        )}
-      </div>
       {learners.accountMessage && (
         <p className="account-message" role="status">
           {learners.accountMessage}
@@ -697,15 +665,6 @@ export default function ChispaApp() {
               <p className="eyebrow">TU CUADERNO DE LOGROS</p>
               <h2 id="album-title">Mira todo lo que has descubierto</h2>
             </div>
-            <button
-              className="text-button"
-              onClick={() => {
-                setAlbumOpen(false);
-                albumToggle.current?.focus();
-              }}
-            >
-              Cerrar álbum
-            </button>
           </div>
           <div className="album-grid">
             {adventures.map((adventure) => {
@@ -759,15 +718,32 @@ export default function ChispaApp() {
               <p className="eyebrow">PARA QUIENES ACOMPAÑAN</p>
               <h2 id="adult-title">Un vistazo al recorrido</h2>
             </div>
-            <button
-              className="text-button"
-              onClick={() => {
-                setAdultOpen(false);
-                adultToggle.current?.focus();
-              }}
-            >
-              Cerrar panel
-            </button>
+            <div className="family-actions">
+              {learners.loginAvailable && !learners.signedIn && (
+                <Link href="/login" className="primary-button compact-button">
+                  Entrar como familia
+                </Link>
+              )}
+              {learners.signedIn && (
+                <button
+                  className="secondary-button compact-button"
+                  onClick={() =>
+                    void learners
+                      .signOut()
+                      .catch(() =>
+                        learners.setAccountMessage(
+                          "No pudimos cerrar la sesión. Inténtalo de nuevo.",
+                        ),
+                      )
+                  }
+                >
+                  Cerrar sesión
+                </button>
+              )}
+              <Link href="/pitch" className="text-button">
+                Ver el pitch
+              </Link>
+            </div>
           </div>
           <ParentInsights profiles={learners.profiles} noteBusy={noteBusy} />
           {learners.signedIn && <CreateChild onCreate={learners.addChild} />}
@@ -780,7 +756,7 @@ export default function ChispaApp() {
       )}
 
       <div id="adventure" className="adventure">
-        {stage === "start" && (
+        {stage === "start" && tab === "home" && (
           <>
             {resume &&
               (resume.learnerId
@@ -815,30 +791,87 @@ export default function ChispaApp() {
                   </button>
                 </section>
               )}
-            <section className="welcome-grid">
-              <div className="welcome-copy">
-                <span className="pill-label">
-                  <span className="status-dot" />
-                  APRENDE A TU RITMO
-                </span>
-                <h1 ref={heading} tabIndex={-1}>
-                  La curiosidad nos lleva
-                  <br />
-                  <span>a lugares increíbles.</span>
-                </h1>
-                <p className="intro">
-                  ¡Hola, {profile.name}! ¿Qué quieres aprender hoy?
+            <section className="greeting-card" aria-labelledby="greeting-title">
+              <button
+                className="greeting-lulo"
+                onClick={() => setGreeting(greeting + 1)}
+                aria-label="Saludar a Lulo"
+              >
+                <LuloAvatar key={greeting} size={150} />
+              </button>
+              <div className="greeting-body">
+                <p className="greeting-bubble" role="status">
+                  {greetings[greeting % greetings.length]}
                 </p>
-                <div className="hero-actions">
-                  <button
-                    className="primary-button"
-                    onClick={() => startLesson("Dinosaurios")}
-                  >
-                    Explorar dinosaurios
-                    <Icon name="arrow" />
+                <h1 id="greeting-title" ref={heading} tabIndex={-1}>
+                  ¡Hola, {profile.name}! ¿Qué quieres aprender hoy?
+                </h1>
+                <form
+                  className="ask-form"
+                  onSubmit={(event) => {
+                    event.preventDefault();
+                    startLesson(topic);
+                  }}
+                >
+                  <label className="sr-only" htmlFor="topic">
+                    ¿Qué quieres aprender?
+                  </label>
+                  <div className="topic-input">
+                    <input
+                      ref={topicInput}
+                      id="topic"
+                      value={topic}
+                      onChange={(event) => setTopic(event.target.value)}
+                      required
+                      minLength={2}
+                      maxLength={100}
+                      placeholder="Dinosaurios, planetas, el mar..."
+                      aria-describedby="topic-message"
+                    />
+                    {micAvailable && (
+                      <button
+                        type="button"
+                        className={`mic-button ${listening ? "mic-active" : ""}`}
+                        onClick={onMic}
+                        aria-label={
+                          listening ? "Detener dictado" : "Dictar mi pregunta"
+                        }
+                        aria-pressed={listening}
+                      >
+                        <Icon name={listening ? "stop" : "mic"} />
+                      </button>
+                    )}
+                  </div>
+                  <button type="submit" className="primary-button">
+                    ¡Vamos!
                   </button>
+                </form>
+                <p
+                  id="topic-message"
+                  className={`small-note ${homeMessage ? "form-message" : ""}`}
+                  role="status"
+                >
+                  {homeMessage ||
+                    (listening
+                      ? "Te escucho. Revisa el texto y toca ¡Vamos! cuando esté listo."
+                      : isDemo
+                        ? "En modo demo puedes pedir Dinosaurios, Planetas o El océano."
+                        : micAvailable
+                          ? "Escríbelo o díselo a Lulo con el micrófono."
+                          : "Escribe lo que quieras descubrir.")}
+                </p>
+                <div className="quick-topics" aria-label="Ideas rápidas">
+                  {adventures.map((adventure) => (
+                    <button
+                      key={adventure.id}
+                      className="topic-chip"
+                      onClick={() => startLesson(adventure.title)}
+                    >
+                      {adventure.title}
+                    </button>
+                  ))}
                   <button
-                    className="text-button surprise-button"
+                    className="topic-chip chip-surprise"
                     onClick={() =>
                       startLesson(
                         adventures[
@@ -847,61 +880,10 @@ export default function ChispaApp() {
                       )
                     }
                   >
-                    <Icon name="spark" size={18} />
+                    <Icon name="spark" size={16} />
                     Sorpréndeme
                   </button>
                 </div>
-                <div className="hero-promise">
-                  <span>
-                    <Icon name="clock" size={16} />
-                    4–5 minutos por aventura
-                  </span>
-                  <span>
-                    <Icon name="sound" size={16} />
-                    Puedes leer o escuchar
-                  </span>
-                </div>
-                <details className="how-it-works">
-                  <summary>¿Cómo se juega?</summary>
-                  <ol>
-                    <li>
-                      <strong>Descubre:</strong> mira las tarjetas y escucha si
-                      quieres.
-                    </li>
-                    <li>
-                      <strong>Juega:</strong> elige una respuesta. Siempre
-                      puedes pedir ayuda.
-                    </li>
-                    <li>
-                      <strong>Celebra:</strong> guarda tu sticker en el álbum.
-                    </li>
-                  </ol>
-                </details>
-              </div>
-              <div className="mascot-world">
-                <span className="world-orbit" aria-hidden="true" />
-                <span className="orbit-star orbit-star-one" aria-hidden="true">
-                  ✦
-                </span>
-                <span className="orbit-star orbit-star-two" aria-hidden="true">
-                  ✧
-                </span>
-                <div className="mascot-bubble" role="status">
-                  {greetings[greeting % greetings.length]}
-                </div>
-                <button
-                  className="mascot-greeting"
-                  onClick={() => setGreeting(greeting + 1)}
-                  aria-label="Saludar a Lulo"
-                >
-                  <LuloAvatar key={greeting} size={290} />
-                  <span>
-                    Toca a Lulo para saludar <span aria-hidden="true">♡</span>
-                  </span>
-                </button>
-                <span className="mascot-name">
-                  LULO <span>Tu compañero de descubrimientos</span>
-                </span>
               </div>
             </section>
 
@@ -910,16 +892,11 @@ export default function ChispaApp() {
               aria-labelledby="explore-title"
             >
               <div className="section-heading">
-                <div>
-                  <p className="eyebrow">TU PRÓXIMO DESCUBRIMIENTO</p>
-                  <h2 id="explore-title">¿A dónde quieres ir?</h2>
-                </div>
-                <span className="catalog-note">
-                  Tres aventuras para empezar
-                </span>
+                <h2 id="explore-title">Aventuras</h2>
+                <span className="catalog-note">4–5 minutos cada una</span>
               </div>
               <div className="topic-grid">
-                {adventures.map((adventure, index) => (
+                {adventures.map((adventure) => (
                   <button
                     key={adventure.id}
                     className={`topic-tile topic-${adventure.id}`}
@@ -927,11 +904,7 @@ export default function ChispaApp() {
                     aria-label={`Explorar ${adventure.title}`}
                   >
                     <div className="topic-picture">
-                      <span className="topic-number">0{index + 1}</span>
                       <AdventureArt subject={adventure.id} />
-                      <span className="topic-arrow">
-                        <Icon name="arrow" size={19} />
-                      </span>
                     </div>
                     <div className="topic-copy">
                       <h3>{adventure.title}</h3>
@@ -947,71 +920,6 @@ export default function ChispaApp() {
               </div>
             </section>
 
-            <section className="your-question" aria-labelledby="question-title">
-              <div>
-                <span className="question-symbol">
-                  <Icon name="help" size={27} />
-                </span>
-                <h2 id="question-title">¿Tienes una pregunta en mente?</h2>
-                <p>
-                  {isDemo
-                    ? "Puedes escribir Dinosaurios, Planetas o El océano. Pronto tendremos más aventuras."
-                    : "Escribe qué te gustaría descubrir y prepararemos una aventura."}
-                </p>
-              </div>
-              <form
-                onSubmit={(event) => {
-                  event.preventDefault();
-                  startLesson(topic);
-                }}
-              >
-                <label className="sr-only" htmlFor="topic">
-                  ¿Qué quieres aprender?
-                </label>
-                <div className="topic-input">
-                  <input
-                    ref={topicInput}
-                    id="topic"
-                    value={topic}
-                    onChange={(event) => setTopic(event.target.value)}
-                    required
-                    minLength={2}
-                    maxLength={100}
-                    placeholder="Por ejemplo: el océano"
-                    aria-describedby="topic-message"
-                  />
-                  {micAvailable && (
-                    <button
-                      type="button"
-                      className={`mic-button ${listening ? "mic-active" : ""}`}
-                      onClick={onMic}
-                      aria-label={
-                        listening ? "Detener dictado" : "Dictar mi pregunta"
-                      }
-                      aria-pressed={listening}
-                    >
-                      <Icon name={listening ? "stop" : "mic"} />
-                    </button>
-                  )}
-                </div>
-                <button type="submit" className="secondary-button">
-                  Vamos
-                  <Icon name="arrow" />
-                </button>
-              </form>
-              <p
-                id="topic-message"
-                className={`small-note ${homeMessage ? "form-message" : ""}`}
-                role="status"
-              >
-                {homeMessage ||
-                  (listening
-                    ? "Te escucho. Revisa el texto y toca Vamos cuando esté listo."
-                    : !micAvailable
-                      ? "Puedes escribir; el dictado no está disponible en este navegador."
-                      : "El micrófono es opcional. Tú decides cómo preguntar.")}
-              </p>
-            </section>
             <PhotoTopic
               onTopic={(topic, hook) =>
                 void startLesson(topic, undefined, hook)
@@ -1055,16 +963,18 @@ export default function ChispaApp() {
 
         {active && journey && (
           <>
-            <div className="journey-top">
-              <JourneyTrail stage={stage} />
+            <div className="journey-top focus-bar">
               <button
-                className="text-button pause-button"
+                className="icon-button"
                 onClick={pause}
                 disabled={busy}
+                aria-label="Pausar y guardar"
+                title="Pausar y guardar"
               >
-                <Icon name="pause" size={18} />
-                Pausar y guardar
+                <Icon name="close" />
               </button>
+              <JourneyTrail stage={stage} />
+              <span className="focus-topic">{journey.lesson.topic}</span>
             </div>
             <section className="learning-layout">
               <aside className="learning-companion">
@@ -1151,12 +1061,9 @@ export default function ChispaApp() {
                   </button>
                   <button
                     className="secondary-button"
-                    onClick={() => {
-                      setAlbumOpen(true);
-                      setAdultOpen(false);
-                    }}
+                    onClick={() => openTab("album")}
                   >
-                    <Icon name="book" />
+                    <Icon name="star" />
                     Ver mi álbum
                   </button>
                 </div>
@@ -1204,31 +1111,28 @@ export default function ChispaApp() {
         )}
       </div>
 
-      <footer className="app-footer">
-        <span className="footer-signature">
-          <Icon name="spark" size={17} />
-          Hecho con curiosidad y un poquito de Caribe.
-        </span>
-        <div>
-          <span>
-            {isDemo ? "Aventuras demo · Sin cuenta" : "Aprende con Lulo"}
-          </span>
-          <Link href="/pitch" className="text-button">
-            Pitch de Chispa
-          </Link>
-          <button
-            ref={adultToggle}
-            className="text-button"
-            aria-expanded={adultOpen}
-            onClick={() => {
-              setAdultOpen(!adultOpen);
-              setAlbumOpen(false);
-            }}
-          >
-            Para quienes acompañan
-          </button>
-        </div>
-      </footer>
+      {!active && stage !== "loading" && (
+        <nav className="app-tabbar" aria-label="Secciones">
+          {TABS.map((entry) => (
+            <button
+              key={entry.id}
+              ref={
+                entry.id === "album"
+                  ? albumToggle
+                  : entry.id === "family"
+                    ? adultToggle
+                    : undefined
+              }
+              className="tab-button"
+              aria-current={tab === entry.id ? "page" : undefined}
+              onClick={() => openTab(entry.id)}
+            >
+              <Icon name={entry.icon} size={24} />
+              <span>{entry.label}</span>
+            </button>
+          ))}
+        </nav>
+      )}
     </main>
   );
 }
