@@ -1,5 +1,5 @@
 import type { ImageResult } from "./commons";
-import { keywordsOf, searchQueries, type QueryOptions } from "./query";
+import { keywordsOf, searchQueries, subjectStem, type QueryOptions } from "./query";
 import type { ImageRequest } from "./schema";
 
 export const FALLBACK_IMAGE: ImageResult = { url: "/assets/lulo/lulo.webp", source: "fallback" };
@@ -10,7 +10,10 @@ const MASCOT_WORDS = new Set(["iguana", "iguanas", "iguano", "lulo", "lizard"]);
 const isMascot = (query: string) => keywordsOf(query).some((word) => MASCOT_WORDS.has(word));
 
 export interface ImageSources {
-  commons: (query: string, opts?: { bitmapOnly?: boolean }) => Promise<ImageResult | null>;
+  commons: (
+    query: string,
+    opts?: { bitmapOnly?: boolean; mustContain?: string | null },
+  ) => Promise<ImageResult | null>;
   illustrate: (query: string) => Promise<ImageResult | null>;
 }
 
@@ -25,8 +28,11 @@ const safe = async <T>(run: () => Promise<T | null>): Promise<T | null> => {
 };
 
 async function firstCommonsHit(sources: ImageSources, query: string, options?: QueryOptions) {
+  const mustContain = subjectStem(query);
+  // Without a concrete subject any web result is a guess; Lulo is a better answer than a random photo.
+  if (!mustContain) return null;
   for (const attempt of searchQueries(query, options)) {
-    const hit = await safe(() => sources.commons(attempt, { bitmapOnly: true }));
+    const hit = await safe(() => sources.commons(attempt, { bitmapOnly: true, mustContain }));
     if (hit) return hit;
   }
   return null;

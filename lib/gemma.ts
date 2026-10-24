@@ -87,6 +87,7 @@ Rules:
 - 4 or 5 cards. Each "text" has at most 3 short sentences in Spanish.
 - "speech" is the same idea adapted to be read aloud, short sentences.
 - For each card choose an image: kind "photo" for real things (animals, fossils, planets, places) with a short, concrete English search query for Wikimedia Commons; kind "illustration" for scenes or ideas with a short English description.
+- Every image query MUST start with the card's main subject as an English noun (for example "dinosaur skeleton", "volcano eruption", "honey bee on flower"). Never use only comparisons, sizes or feelings ("tall building", "huge", "classroom").
 - "cover" and "sticker.query" are short English descriptions for an illustration.
 - Exactly 3 quiz questions in Spanish with 3 options each, based only on the cards.
 - "style" must be "${req.style}" and "level" must be "${req.level}".

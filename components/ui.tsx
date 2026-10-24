@@ -46,7 +46,8 @@ export function Card({
 }
 
 // Cache resolved images in localStorage by request so the same image is never fetched (or paid) twice.
-const IMAGE_CACHE = "chispa:images";
+// v2: results before the subject check (e.g. a stork on a dinosaur card) must not be reused.
+const IMAGE_CACHE = "chispa:images:v2";
 
 function readImageCache(): Record<string, ImageResult> {
   try {

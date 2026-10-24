@@ -17,6 +17,25 @@ describe("resolveImageWith", () => {
     expect(illustrate).not.toHaveBeenCalled();
   });
 
+  it("asks Wikimedia for the subject of the original prompt on every retry", async () => {
+    const commons = vi.fn(async () => null);
+    await resolveImageWith(
+      { kind: "photo", query: "dinosaur as tall as a building" },
+      { commons, illustrate: async () => null },
+    );
+    expect(commons.mock.calls.length).toBeGreaterThan(1);
+    for (const [, opts] of commons.mock.calls as unknown as [string, { mustContain?: string }][]) {
+      expect(opts.mustContain).toBe("dinos");
+    }
+  });
+
+  it("does not search the web when the prompt names no concrete subject", async () => {
+    const commons = vi.fn(async () => photo("random.jpg"));
+    const result = await resolveImageWith({ kind: "photo", query: "huge" }, { commons, illustrate: async () => null });
+    expect(commons).not.toHaveBeenCalled();
+    expect(result).toEqual(FALLBACK_IMAGE);
+  });
+
   it("for illustrations, uses OpenAI first", async () => {
     const commons = vi.fn(async () => photo("x.jpg"));
     const result = await resolveImageWith(
