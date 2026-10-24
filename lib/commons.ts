@@ -38,12 +38,15 @@ export function pickCommonsImage(json: unknown): ImageResult | null {
 }
 
 // Wikimedia Commons is the only web source, so children never see arbitrary search results.
-export async function searchCommons(query: string): Promise<ImageResult | null> {
+export async function searchCommons(
+  query: string,
+  { bitmapOnly = true }: { bitmapOnly?: boolean } = {},
+): Promise<ImageResult | null> {
   const params = new URLSearchParams({
     action: "query",
     format: "json",
     generator: "search",
-    gsrsearch: `${query} filetype:bitmap`,
+    gsrsearch: bitmapOnly ? `${query} filetype:bitmap` : query,
     gsrnamespace: "6",
     gsrlimit: "5",
     prop: "imageinfo",
@@ -52,6 +55,7 @@ export async function searchCommons(query: string): Promise<ImageResult | null> 
   });
   const response = await fetch(`https://commons.wikimedia.org/w/api.php?${params}`, {
     headers: { "User-Agent": "Chispa/0.1 (open-source kids tutor; https://github.com/srhanscho/chispa)" },
+    signal: AbortSignal.timeout(6000),
   });
   if (!response.ok) return null;
   return pickCommonsImage(await response.json());

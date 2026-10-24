@@ -3,14 +3,13 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { createHash } from "node:crypto";
 import path from "node:path";
 import { searchCommons, type ImageResult } from "./commons";
+import { FALLBACK_IMAGE, resolveImageWith } from "./image-pipeline";
 import type { ImageRequest } from "./schema";
 
 const STYLE =
   "flat children's book illustration, rounded shapes, thick outlines, " +
   "colors green #3FA34D, turquoise #14A3B8, mango yellow #FFC93C, coral #FF6B5B, " +
   "light sand background, no text";
-
-const FALLBACK: ImageResult = { url: "/lulo.svg", source: "fallback" };
 
 // In-memory cache per server instance, plus a disk cache in development so demo images are paid once.
 const memory = new Map<string, ImageResult>();
@@ -51,6 +50,7 @@ async function generateIllustration(query: string): Promise<ImageResult | null> 
       quality: "low",
       n: 1,
     }),
+    signal: AbortSignal.timeout(45000),
   });
   if (!response.ok) {
     console.error("OpenAI image error", response.status, await response.text());
@@ -68,12 +68,9 @@ export async function resolveImage(req: ImageRequest): Promise<ImageResult> {
   const cached = memory.get(key) ?? (await readDisk(key));
   if (cached) return cached;
 
-  const result =
-    (req.kind === "photo" ? await searchCommons(req.query) : null) ??
-    (await generateIllustration(req.query)) ??
-    FALLBACK;
+  const result = await resolveImageWith(req, { commons: searchCommons, illustrate: generateIllustration });
 
-  if (result !== FALLBACK) {
+  if (result !== FALLBACK_IMAGE) {
     memory.set(key, result);
     await writeDisk(key, result);
   }
