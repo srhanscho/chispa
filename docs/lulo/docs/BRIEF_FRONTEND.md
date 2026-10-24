@@ -1,7 +1,7 @@
 # Brief UX/UI — Chispa con Lulo
 
 ## Público
-- Niños de 6–10 años: lectura corta, iconografía reconocible, recompensas positivas y comunicación con voz opcional.
+- Niños de 6–12 años: lectura corta, iconografía reconocible, recompensas positivas y comunicación con voz opcional.
 - Adultos responsables: una pantalla secundaria con progreso sencillo, sin lenguaje diagnóstico.
 
 ## Identidad visual
