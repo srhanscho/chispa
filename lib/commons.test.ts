@@ -74,6 +74,17 @@ describe("pickCommonsImage", () => {
     expect(pickCommonsImage(results, "dinos")?.url).toBe("https://upload.example/dino.jpg");
   });
 
+  it("keeps regular Flickr photos that only carry a photo id", () => {
+    const results = {
+      query: {
+        pages: {
+          "1": { index: 1, title: "File:Monarch butterfly chrysalis (53138332352).jpg", imageinfo: [{ thumburl: "https://upload.example/chrysalis.jpg" }] },
+        },
+      },
+    };
+    expect(pickCommonsImage(results, "butte")?.url).toBe("https://upload.example/chrysalis.jpg");
+  });
+
   it("returns null when there are no results", () => {
     expect(pickCommonsImage({})).toBeNull();
   });
