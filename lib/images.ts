@@ -2,7 +2,8 @@ import "server-only";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { createHash } from "node:crypto";
 import path from "node:path";
-import { searchCommons, type ImageResult } from "./commons";
+import { searchCommons, searchCommonsCandidates, type ImageResult } from "./commons";
+import { chooseImage } from "./gemma";
 import { FALLBACK_IMAGE, resolveImageWith } from "./image-pipeline";
 import type { ImageRequest } from "./schema";
 
@@ -82,7 +83,12 @@ export async function resolveImage(req: ImageRequest): Promise<ImageResult> {
   const cached = memory.get(key) ?? (await readDisk(key));
   if (cached) return cached;
 
-  const result = await resolveImageWith(req, { commons: searchCommons, illustrate: generateIllustration });
+  const vision = process.env.GEMINI_API_KEY && process.env.IMAGE_VISION_CHECK !== "0";
+  const result = await resolveImageWith(req, {
+    commons: searchCommons,
+    illustrate: generateIllustration,
+    ...(vision ? { commonsMany: searchCommonsCandidates, choose: chooseImage } : {}),
+  });
 
   if (result !== FALLBACK_IMAGE) {
     memory.set(key, result);

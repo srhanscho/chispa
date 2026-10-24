@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { pickCommonsImage } from "./commons";
+import { pickCommonsImage, pickCommonsImages } from "./commons";
 
 const response = {
   query: {
@@ -76,5 +76,18 @@ describe("pickCommonsImage", () => {
 
   it("returns null when there are no results", () => {
     expect(pickCommonsImage({})).toBeNull();
+  });
+});
+
+describe("pickCommonsImages", () => {
+  it("returns up to the limit of matching candidates in search order", () => {
+    const pages = Object.fromEntries(
+      [1, 2, 3, 4, 5].map((i) => [
+        String(i),
+        { index: i, title: `File:Volcano ${i}.jpg`, imageinfo: [{ thumburl: `https://upload.example/${i}.jpg` }] },
+      ]),
+    );
+    const urls = pickCommonsImages({ query: { pages } }, "volca", 3).map((c) => c.url);
+    expect(urls).toEqual(["https://upload.example/1.jpg", "https://upload.example/2.jpg", "https://upload.example/3.jpg"]);
   });
 });

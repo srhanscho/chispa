@@ -9,12 +9,15 @@ export const MASCOT_IMAGE: ImageResult = { url: "/assets/lulo/lulo.webp", source
 const MASCOT_WORDS = new Set(["iguana", "iguanas", "iguano", "lulo", "lizard"]);
 const isMascot = (query: string) => keywordsOf(query).some((word) => MASCOT_WORDS.has(word));
 
+type CommonsOptions = { bitmapOnly?: boolean; mustContain?: string | null };
+
 export interface ImageSources {
-  commons: (
-    query: string,
-    opts?: { bitmapOnly?: boolean; mustContain?: string | null },
-  ) => Promise<ImageResult | null>;
+  commons: (query: string, opts?: CommonsOptions) => Promise<ImageResult | null>;
   illustrate: (query: string) => Promise<ImageResult | null>;
+  // Optional vision check: several Commons candidates, and Gemma picks the one that really shows the
+  // description (index), or -1 when none fits.
+  commonsMany?: (query: string, opts?: CommonsOptions) => Promise<ImageResult[]>;
+  choose?: (description: string, candidates: ImageResult[]) => Promise<number>;
 }
 
 // A failing source (network, quota) must never break the lesson: treat errors as "no result".
@@ -31,8 +34,24 @@ async function firstCommonsHit(sources: ImageSources, query: string, options?: Q
   const mustContain = subjectStem(query);
   // Without a concrete subject any web result is a guess; Lulo is a better answer than a random photo.
   if (!mustContain) return null;
+  const { commonsMany, choose } = sources;
   for (const attempt of searchQueries(query, options)) {
-    const hit = await safe(() => sources.commons(attempt, { bitmapOnly: true, mustContain }));
+    const opts = { bitmapOnly: true, mustContain };
+    if (commonsMany && choose) {
+      const candidates = (await safe(() => commonsMany(attempt, opts))) ?? [];
+      if (!candidates.length) continue;
+      let picked: number;
+      try {
+        picked = await choose(query, candidates);
+      } catch (error) {
+        // The check is a quality bonus; if it fails, keep the old behavior instead of losing the image.
+        console.error("[images] vision check failed", error);
+        return candidates[0];
+      }
+      if (picked >= 0 && picked < candidates.length) return candidates[picked];
+      continue;
+    }
+    const hit = await safe(() => sources.commons(attempt, opts));
     if (hit) return hit;
   }
   return null;
