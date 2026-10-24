@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useRef, type RefObject } from "react";
-import { findAdventure } from "@/lib/adventures";
 import type { Journey } from "@/lib/journey";
-import { AdventureArt, Icon } from "./AdventureArt";
+import { Icon } from "./AdventureArt";
+import { LessonImage } from "./ui";
 
 interface Props {
   journey: Journey;
@@ -43,7 +43,6 @@ export function LearningCard({
   const question = lesson.quiz[step];
   const isLesson = stage === "lesson";
   const count = isLesson ? lesson.cards.length : lesson.quiz.length;
-  const subject = findAdventure(lesson.topic)?.id;
   const feedbackRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -85,13 +84,12 @@ export function LearningCard({
           <h1 ref={heading} tabIndex={-1}>
             {card.title}
           </h1>
-          <figure className={`lesson-art art-${subject ?? "book"}`}>
-            <AdventureArt subject={subject} detail={step} />
-            <figcaption>
-              Una ilustración para imaginar el descubrimiento
-            </figcaption>
-          </figure>
           <p className="reading-text">{card.text}</p>
+          <LessonImage
+            key={`${card.image.kind}:${card.image.query}`}
+            request={card.image}
+            alt={card.title}
+          />
           <div className="learning-tools">
             {audioButton(card.speech, "Escuchar este descubrimiento")}
             <button className="soft-button" onClick={onHelp}>

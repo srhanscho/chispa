@@ -44,6 +44,12 @@ export const JourneySchema = z
     correct: counter,
     help: counter,
     feedback: z.string().max(4000),
+    learnerId: z.string().optional(),
+    courseId: z.string().optional(),
+    replays: counter.optional(),
+    confused: counter.optional(),
+    hintsUsed: counter.optional(),
+    answerMs: z.array(z.number().nonnegative()).max(5).optional(),
   })
   .superRefine((value, context) => {
     const length =

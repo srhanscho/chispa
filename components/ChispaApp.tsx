@@ -1,23 +1,40 @@
 "use client";
 
 import { useEffect, useReducer, useRef, useState } from "react";
+import Link from "next/link";
+import {
+  levelFor,
+  pickStyle,
+  type LearnerProfile,
+  type SessionLog,
+} from "@/lib/engine";
+import type { Lesson, Style } from "@/lib/schema";
+import { completeProfile } from "@/lib/learner-ui";
+import { saveCourse, finishCourse } from "@/lib/course-ui";
+import { requestNote } from "@/lib/experience-api";
+import { useLearners } from "./useLearners";
+import {
+  ParentInsights,
+  CoursePanel,
+  CreateChild,
+  NextTopics,
+} from "./ExperiencePanels";
+import { TutorChat } from "./TutorChat";
+import { PhotoTopic } from "./PhotoTopic";
+import { LoadingAdventure } from "./LoadingAdventure";
+import { LessonImage } from "./ui";
 import { adventures, findAdventure } from "@/lib/adventures";
 import {
-  awardProgress,
   clearJourney,
   defaultPreferences,
-  emptyProgress,
   JOURNEY_KEY,
   JourneySchema,
   PREFERENCES_KEY,
   PreferencesSchema,
-  PROGRESS_KEY,
-  ProgressSchema,
   readStored,
   storeLocal,
   type Journey,
   type Preferences,
-  type Progress,
 } from "@/lib/journey";
 import { getCardSupport, isDemo, lessonService } from "@/lib/lesson-service";
 import { initialLuloState, luloReducer } from "@/lib/lulo";
@@ -34,10 +51,14 @@ const greetings = [
 ];
 
 export default function ChispaApp() {
+  const learners = useLearners();
+  const { profile } = learners;
   const [stage, setStage] = useState<Stage>("start");
   const [journey, setJourneyState] = useState<Journey | null>(null);
   const [resume, setResume] = useState<Journey | null>(null);
-  const [progress, setProgress] = useState<Progress>(emptyProgress);
+  const [coursesOpen, setCoursesOpen] = useState(false);
+  const [noteBusy, setNoteBusy] = useState(false);
+  const [photoHook, setPhotoHook] = useState("");
   const [preferences, setPreferences] =
     useState<Preferences>(defaultPreferences);
   const [topic, setTopic] = useState("");
@@ -61,13 +82,15 @@ export default function ChispaApp() {
   const journeyRef = useRef<Journey | null>(null);
   const requestLock = useRef(false);
   const rewarded = useRef(false);
+  const owner = useRef<LearnerProfile | null>(null);
+  const questionStartedAt = useRef(0);
+  const readCounts = useRef(new Map<string, number>());
   const stopListening = useRef<(() => void) | undefined>(undefined);
   const active = stage === "lesson" || stage === "quiz";
 
   useEffect(() => {
     // Read browser capabilities and local demo data only after hydration.
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setProgress(readStored(PROGRESS_KEY, ProgressSchema, emptyProgress));
     setPreferences(
       readStored(PREFERENCES_KEY, PreferencesSchema, defaultPreferences),
     );
@@ -89,6 +112,18 @@ export default function ChispaApp() {
   useEffect(() => {
     if (albumOpen) albumPanel.current?.focus();
   }, [albumOpen]);
+  useEffect(() => {
+    if (journey?.learnerId && journey.learnerId !== profile.id) {
+      stopSpeaking();
+      owner.current = null;
+      journeyRef.current = null;
+      // A profile change must not leave another learner's lesson or reward visible.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setJourneyState(null);
+      setStage("start");
+      setHomeMessage("Cambió el perfil. Elige una aventura para continuar.");
+    }
+  }, [journey?.learnerId, profile.id]);
 
   // Save at the action boundary so a quick pause/reload cannot persist an older render.
   function setJourney(next: Journey) {
@@ -98,6 +133,18 @@ export default function ChispaApp() {
   }
 
   function read(text: string) {
+    const current = journeyRef.current;
+    if (
+      active &&
+      current?.stage === "lesson" &&
+      text === current.lesson.cards[current.step].speech
+    ) {
+      const key = `${current.courseId}:${current.step}`;
+      const count = readCounts.current.get(key) ?? 0;
+      readCounts.current.set(key, count + 1);
+      if (count)
+        setJourney({ ...current, replays: (current.replays ?? 0) + 1 });
+    }
     speak(text, (speaking) =>
       dispatch(speaking ? "SPEECH_STARTED" : "SPEECH_ENDED"),
     );
@@ -108,18 +155,15 @@ export default function ChispaApp() {
     storeLocal(PREFERENCES_KEY, next);
   }
 
-  async function startLesson(requested: string) {
+  async function startLesson(
+    requested: string,
+    suggestedStyle?: Style,
+    hook = "",
+  ) {
     if (requestLock.current) return;
     const trimmed = requested.trim();
     if (trimmed.length < 2 || trimmed.length > 100) {
       setHomeMessage("Escribe una idea de entre 2 y 100 letras.");
-      topicInput.current?.focus();
-      return;
-    }
-    if (isDemo && !findAdventure(trimmed)) {
-      setHomeMessage(
-        "Esa aventura aún no está en el cuaderno. Por ahora puedes elegir Dinosaurios, Planetas o El océano.",
-      );
       topicInput.current?.focus();
       return;
     }
@@ -128,40 +172,71 @@ export default function ChispaApp() {
     stopListening.current?.();
     setListening(false);
     setRequestedTopic(trimmed);
+    setPhotoHook(hook);
     setStage("loading");
     setHomeMessage("");
     setAlbumOpen(false);
     setAdultOpen(false);
+    setCoursesOpen(false);
     dispatch("LESSON_REQUESTED");
     try {
       const lesson = await lessonService.getLesson({
         topic: trimmed,
-        age: 8,
-        style: "story",
-        level: "explorer",
+        age: profile.age,
+        style: suggestedStyle ?? pickStyle(profile),
+        level: levelFor(profile.mastery[trimmed] ?? 0),
       });
-      const next: Journey = {
-        stage: "lesson",
-        lesson,
-        step: 0,
-        choice: null,
-        submitted: false,
-        correct: 0,
-        help: 0,
-        feedback: "",
-      };
-      setJourney(next);
-      setResume(null);
-      setStage("lesson");
-      answerLock.current = false;
-      rewarded.current = false;
-      dispatch("LESSON_CARD_SHOWN");
+      await beginLesson(lesson);
     } catch {
       setStage("error");
       dispatch("CHILD_NEEDS_HELP");
     } finally {
       requestLock.current = false;
     }
+  }
+
+  async function beginLesson(lesson: Lesson, existingCourseId?: string) {
+    let courseId = existingCourseId;
+    owner.current = profile;
+    if (!courseId) {
+      try {
+        courseId = await saveCourse(
+          profile,
+          lesson,
+          learners.isCloud(profile.id),
+        );
+      } catch {
+        learners.setAccountMessage(
+          "La clase está lista. No pudimos guardarla en tu cuenta.",
+        );
+      }
+    }
+    const next: Journey = {
+      stage: "lesson",
+      lesson,
+      step: 0,
+      choice: null,
+      submitted: false,
+      correct: 0,
+      help: 0,
+      feedback: "",
+      learnerId: profile.id,
+      courseId,
+      replays: 0,
+      confused: 0,
+      hintsUsed: 0,
+      answerMs: [],
+    };
+    setJourney(next);
+    setResume(null);
+    setStage("lesson");
+    setCoursesOpen(false);
+    setAdultOpen(false);
+    setAlbumOpen(false);
+    readCounts.current.clear();
+    answerLock.current = false;
+    rewarded.current = false;
+    dispatch("LESSON_CARD_SHOWN");
   }
 
   function pause() {
@@ -181,11 +256,15 @@ export default function ChispaApp() {
 
   function resumeJourney() {
     if (!resume) return;
+    if (resume.learnerId && resume.learnerId !== profile.id) return;
+    if (!resume.learnerId && profile.id !== "demo-sofia") return;
+    owner.current = profile;
     stopSpeaking();
     setJourney(resume);
     setStage(resume.stage);
     answerLock.current = resume.submitted;
     rewarded.current = false;
+    questionStartedAt.current = Date.now();
     dispatch(
       resume.stage === "lesson"
         ? "LESSON_CARD_SHOWN"
@@ -216,6 +295,7 @@ export default function ChispaApp() {
       feedback: "",
     });
     setStage("quiz");
+    questionStartedAt.current = Date.now();
     answerLock.current = false;
     dispatch("QUIZ_STARTED");
   }
@@ -240,10 +320,10 @@ export default function ChispaApp() {
     stopSpeaking();
     const question = journey.lesson.quiz[journey.step];
     const correct = journey.choice === question.answerIndex;
-    let feedback = (
-      findAdventure(journey.lesson.topic)?.explanations[journey.step] ??
-      `La respuesta es ${question.options[question.answerIndex]}.`
-    ).replace(/^(¡Casi!|¡Mira esta pista!)\s*/, "");
+    const elapsed = questionStartedAt.current
+      ? Math.max(0, Date.now() - questionStartedAt.current)
+      : 0;
+    let feedback = `La respuesta es ${question.options[question.answerIndex]}. ${question.hint}`;
     if (!correct) {
       dispatch("CHILD_NEEDS_HELP");
       try {
@@ -252,6 +332,7 @@ export default function ChispaApp() {
             journey.lesson,
             journey.step,
             journey.choice,
+            (owner.current ?? profile).age,
           )
         ).text;
       } catch {
@@ -263,6 +344,7 @@ export default function ChispaApp() {
       submitted: true,
       correct: journey.correct + (correct ? 1 : 0),
       feedback,
+      answerMs: [...(journey.answerMs ?? []), elapsed],
     });
     setBusy(false);
   }
@@ -281,16 +363,78 @@ export default function ChispaApp() {
       });
       answerLock.current = false;
       dispatch("QUIZ_STARTED");
+      questionStartedAt.current = Date.now();
     } else if (!rewarded.current) {
       rewarded.current = true;
-      const next = awardProgress(progress, journey);
-      setProgress(next);
-      storeLocal(PROGRESS_KEY, next);
+      const learner = owner.current ?? profile;
+      const times = journey.answerMs ?? [];
+      const session: SessionLog = {
+        topic: journey.lesson.topic,
+        style: journey.lesson.style,
+        correct: journey.correct,
+        total: journey.lesson.quiz.length,
+        avgAnswerMs: times.length
+          ? times.reduce((sum, time) => sum + time, 0) / times.length
+          : 0,
+        replays: journey.replays ?? 0,
+        confused: journey.confused ?? 0,
+        hintsUsed: journey.hintsUsed ?? 0,
+        completed: true,
+        at: new Date().toISOString(),
+      };
+      const updated = completeProfile(
+        learner,
+        session,
+        "/assets/lulo/lulo_referencia_original.png",
+      );
+      learners.updateProfile(updated);
+      void finalizeSession(updated, session, journey.courseId);
       clearJourney();
       setResume(null);
       setStage("done");
       dispatch("REWARD_EARNED");
     }
+  }
+
+  async function finalizeSession(
+    updated: LearnerProfile,
+    session: SessionLog,
+    courseId?: string,
+  ) {
+    setNoteBusy(true);
+    try {
+      await finishCourse(
+        courseId,
+        updated,
+        session,
+        learners.isCloud(updated.id),
+      );
+    } catch {
+      learners.setAccountMessage(
+        "El avance sigue disponible aquí. No pudimos sincronizarlo con la cuenta.",
+      );
+    }
+    let lastNote: string;
+    try {
+      lastNote = (await requestNote(updated)).note;
+    } catch {
+      lastNote = `[Resumen local] ${updated.name} completó ${session.topic} con ${session.correct} aciertos de ${session.total}. Pidió ${session.confused + session.hintsUsed} ayudas. Podemos repasar con otro ejemplo.`;
+    }
+    const latest = learners.getProfile(updated.id) ?? updated;
+    if (latest.sessions.at(-1)?.at === session.at) {
+      const withNote = { ...latest, lastNote };
+      learners.updateProfile(withNote);
+      if (learners.isCloud(withNote.id)) {
+        try {
+          await finishCourse(undefined, withNote, session, true);
+        } catch {
+          learners.setAccountMessage(
+            "La nota está disponible aquí. Su sincronización quedó pendiente.",
+          );
+        }
+      }
+    }
+    setNoteBusy(false);
   }
 
   function helpWithCard() {
@@ -299,6 +443,7 @@ export default function ChispaApp() {
     setJourney({
       ...journey,
       help: journey.help + 1,
+      confused: (journey.confused ?? 0) + 1,
       feedback: getCardSupport(journey.lesson, journey.step),
     });
     dispatch("CHILD_NEEDS_HELP");
@@ -310,6 +455,7 @@ export default function ChispaApp() {
     setJourney({
       ...journey,
       help: journey.help + 1,
+      hintsUsed: (journey.hintsUsed ?? 0) + 1,
       feedback: journey.lesson.quiz[journey.step].hint,
     });
     dispatch("CHILD_NEEDS_HELP");
@@ -336,9 +482,54 @@ export default function ChispaApp() {
     );
   }
 
+  function updateSticker(imageUrl: string, topic: string, learnerId: string) {
+    const learner = learners.getProfile(learnerId);
+    if (
+      !learner ||
+      !learner.stickers.some(
+        (sticker) => sticker.topic === topic && sticker.imageUrl !== imageUrl,
+      )
+    )
+      return;
+    const next = {
+      ...learner,
+      stickers: learner.stickers.map((sticker) =>
+        sticker.topic === topic ? { ...sticker, imageUrl } : sticker,
+      ),
+    };
+    learners.updateProfile(next);
+    const last = next.sessions.at(-1);
+    if (last && learners.isCloud(next.id))
+      void finishCourse(undefined, next, last, true).catch(() =>
+        learners.setAccountMessage(
+          "El sticker se ve aquí. Su sincronización quedó pendiente.",
+        ),
+      );
+  }
+
   const currentAdventure = journey
     ? findAdventure(journey.lesson.topic)
     : undefined;
+  const progress = {
+    stars: profile.stars,
+    sessions: profile.sessions.length,
+    correct: profile.sessions.reduce(
+      (sum, session) => sum + session.correct,
+      0,
+    ),
+    questions: profile.sessions.reduce(
+      (sum, session) => sum + session.total,
+      0,
+    ),
+    help: profile.sessions.reduce(
+      (sum, session) => sum + session.confused + session.hintsUsed,
+      0,
+    ),
+    stickers: profile.stickers.map(
+      (sticker) =>
+        findAdventure(sticker.topic)?.lesson.sticker.name ?? sticker.topic,
+    ),
+  };
 
   return (
     <main
@@ -425,6 +616,74 @@ export default function ChispaApp() {
         </nav>
       </header>
 
+      <div className="learner-toolbar">
+        <label>
+          Aprendo como
+          <select
+            aria-label="Perfil de aprendizaje"
+            value={profile.id}
+            disabled={active || stage === "loading" || busy}
+            onChange={(event) => {
+              learners.setActiveId(event.target.value);
+              setCoursesOpen(false);
+            }}
+          >
+            {learners.profiles.map((entry) => (
+              <option key={entry.id} value={entry.id}>
+                {entry.name} · {entry.age} años
+              </option>
+            ))}
+          </select>
+        </label>
+        <button
+          className="secondary-button"
+          aria-expanded={coursesOpen}
+          disabled={active || stage === "loading"}
+          onClick={() => {
+            setCoursesOpen(!coursesOpen);
+            setAdultOpen(false);
+          }}
+        >
+          Mis cursos
+        </button>
+        {learners.loginAvailable && !learners.signedIn && (
+          <Link href="/login" className="text-button">
+            Para papás · Entrar
+          </Link>
+        )}
+        {learners.signedIn && (
+          <button
+            className="text-button"
+            disabled={active || stage === "loading"}
+            onClick={() =>
+              void learners
+                .signOut()
+                .catch(() =>
+                  learners.setAccountMessage(
+                    "No pudimos cerrar la sesión. Inténtalo de nuevo.",
+                  ),
+                )
+            }
+          >
+            Cerrar sesión familiar
+          </button>
+        )}
+      </div>
+      {learners.accountMessage && (
+        <p className="account-message" role="status">
+          {learners.accountMessage}
+        </p>
+      )}
+      {coursesOpen && (
+        <CoursePanel
+          key={profile.id}
+          profile={profile}
+          cloud={learners.isCloud(profile.id)}
+          onClose={() => setCoursesOpen(false)}
+          onOpen={(lesson, id) => void beginLesson(lesson, id)}
+        />
+      )}
+
       {albumOpen && (
         <section
           id="album-panel"
@@ -510,24 +769,8 @@ export default function ChispaApp() {
               Cerrar panel
             </button>
           </div>
-          <div className="stat-grid">
-            <p>
-              <strong>{progress.sessions}</strong>Aventuras completadas
-            </p>
-            <p>
-              <strong>
-                {progress.correct}/{progress.questions}
-              </strong>
-              Respuestas acertadas
-            </p>
-            <p>
-              <strong>{progress.help}</strong>Ayudas solicitadas
-            </p>
-          </div>
-          <p>
-            Son contadores de actividad en este navegador. No son un diagnóstico
-            ni determinan cómo aprende una persona.
-          </p>
+          <ParentInsights profiles={learners.profiles} noteBusy={noteBusy} />
+          {learners.signedIn && <CreateChild onCreate={learners.addChild} />}
           <p className="adult-tip">
             <strong>Una idea para acompañar:</strong> pregunta «¿qué
             descubriste?» y deja que lo explique con sus palabras, un dibujo o
@@ -539,31 +782,39 @@ export default function ChispaApp() {
       <div id="adventure" className="adventure">
         {stage === "start" && (
           <>
-            {resume && (
-              <section className="resume-banner" aria-label="Aventura guardada">
-                <span className="resume-icon">
-                  <Icon name="book" size={28} />
-                </span>
-                <div>
-                  <strong>Tu aventura te está esperando</strong>
-                  <p>
-                    {resume.lesson.topic} ·{" "}
-                    {resume.stage === "lesson" ? "Descubrimiento" : "Pregunta"}{" "}
-                    {resume.step + 1} de{" "}
-                    {resume.stage === "lesson"
-                      ? resume.lesson.cards.length
-                      : resume.lesson.quiz.length}
-                  </p>
-                </div>
-                <button
-                  className="primary-button compact-button"
-                  onClick={resumeJourney}
+            {resume &&
+              (resume.learnerId
+                ? resume.learnerId === profile.id
+                : profile.id === "demo-sofia") && (
+                <section
+                  className="resume-banner"
+                  aria-label="Aventura guardada"
                 >
-                  Continuar
-                  <Icon name="arrow" />
-                </button>
-              </section>
-            )}
+                  <span className="resume-icon">
+                    <Icon name="book" size={28} />
+                  </span>
+                  <div>
+                    <strong>Tu aventura te está esperando</strong>
+                    <p>
+                      {resume.lesson.topic} ·{" "}
+                      {resume.stage === "lesson"
+                        ? "Descubrimiento"
+                        : "Pregunta"}{" "}
+                      {resume.step + 1} de{" "}
+                      {resume.stage === "lesson"
+                        ? resume.lesson.cards.length
+                        : resume.lesson.quiz.length}
+                    </p>
+                  </div>
+                  <button
+                    className="primary-button compact-button"
+                    onClick={resumeJourney}
+                  >
+                    Continuar
+                    <Icon name="arrow" />
+                  </button>
+                </section>
+              )}
             <section className="welcome-grid">
               <div className="welcome-copy">
                 <span className="pill-label">
@@ -576,8 +827,7 @@ export default function ChispaApp() {
                   <span>a lugares increíbles.</span>
                 </h1>
                 <p className="intro">
-                  Soy Lulo. Elige una aventura y descubramos algo nuevo, una
-                  pregunta a la vez.
+                  ¡Hola, {profile.name}! ¿Qué quieres aprender hoy?
                 </p>
                 <div className="hero-actions">
                   <button
@@ -762,25 +1012,24 @@ export default function ChispaApp() {
                       : "El micrófono es opcional. Tú decides cómo preguntar.")}
               </p>
             </section>
+            <PhotoTopic
+              onTopic={(topic, hook) =>
+                void startLesson(topic, undefined, hook)
+              }
+            />
+            <NextTopics
+              profile={profile}
+              onTopic={(topic, style) => void startLesson(topic, style)}
+            />
           </>
         )}
 
         {stage === "loading" && (
-          <section className="center-stage loading-stage" aria-busy="true">
-            <LuloAvatar scene="loading" size={210} />
-            <p className="eyebrow">
-              PREPARANDO {requestedTopic.toLocaleUpperCase("es")}
-            </p>
-            <h1 ref={heading} tabIndex={-1}>
-              Una nueva aventura está por empezar.
-            </h1>
-            <p role="status">Lulo está reuniendo tus descubrimientos.</p>
-            <div className="loading-dots" aria-hidden="true">
-              <span />
-              <span />
-              <span />
-            </div>
-          </section>
+          <LoadingAdventure
+            key={requestedTopic}
+            topic={requestedTopic}
+            hook={photoHook}
+          />
         )}
         {stage === "error" && (
           <section className="center-stage">
@@ -856,6 +1105,19 @@ export default function ChispaApp() {
                 onHint={hint}
               />
             </section>
+            {stage === "lesson" && (
+              <TutorChat
+                key={`${journey.courseId ?? journey.lesson.topic}:${profile.id}`}
+                lesson={journey.lesson}
+                profile={profile}
+                onSpeak={read}
+                onAction={(action) => {
+                  if (action.type === "start_lesson")
+                    void startLesson(action.topic);
+                  else if (action.type === "start_quiz") startQuiz();
+                }}
+              />
+            )}
           </>
         )}
 
@@ -914,12 +1176,30 @@ export default function ChispaApp() {
                 <div
                   className={`reward-sticker art-${currentAdventure?.id ?? "book"}`}
                 >
-                  <AdventureArt subject={currentAdventure?.id} />
+                  <LessonImage
+                    key={journey.lesson.sticker.query}
+                    request={{
+                      kind: "illustration",
+                      query: journey.lesson.sticker.query,
+                    }}
+                    alt={journey.lesson.sticker.name}
+                    onResolved={(image) =>
+                      updateSticker(
+                        image.url,
+                        journey.lesson.topic,
+                        journey.learnerId ?? profile.id,
+                      )
+                    }
+                  />
                   <strong>{journey.lesson.sticker.name}</strong>
                   <span>¡Un nuevo logro en tu álbum!</span>
                 </div>
               </div>
             </section>
+            <NextTopics
+              profile={profile}
+              onTopic={(topic, style) => void startLesson(topic, style)}
+            />
           </>
         )}
       </div>
@@ -933,6 +1213,9 @@ export default function ChispaApp() {
           <span>
             {isDemo ? "Aventuras demo · Sin cuenta" : "Aprende con Lulo"}
           </span>
+          <Link href="/pitch" className="text-button">
+            Pitch de Chispa
+          </Link>
           <button
             ref={adultToggle}
             className="text-button"

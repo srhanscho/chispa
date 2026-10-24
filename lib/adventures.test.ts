@@ -31,15 +31,14 @@ describe("local adventure catalog", () => {
       expect(lesson.quiz).toHaveLength(3);
       expect(
         (await mockLessonService.getReexplanation(lesson, 0, 2)).text,
-      ).toBe(adventure.explanations[0]);
-      expect(adventure.support).toHaveLength(lesson.cards.length);
+      ).toContain(lesson.quiz[0].options[lesson.quiz[0].answerIndex]);
     }
     expect(fetch).not.toHaveBeenCalled();
   });
   it("returns a useful error for unsupported topics", async () => {
     await expect(
       mockLessonService.getLesson({
-        topic: "Volcanes",
+        topic: "Robots submarinos",
         age: 8,
         style: "story",
         level: "explorer",

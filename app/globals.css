@@ -1951,3 +1951,572 @@ progress::-moz-progress-bar {
     scroll-behavior: auto !important;
   }
 }
+
+/* Experience integration: profiles, account, tutor and learning evidence. */
+.pitch-shell { width:min(1180px,100%); padding:25px 40px; margin:auto; }.pitch-shell > header { display:flex; align-items:center; justify-content:space-between; }.pitch-slide { display:grid; grid-template-columns:minmax(0,1fr) 320px; align-items:center; gap:50px; min-height:570px; padding:45px 0; }.pitch-slide h1 { font-size:56px; font-weight:800; line-height:1.15; margin:22px 0; }.pitch-slide h2 { font-size:28px; color:#3c7849; font-weight:700; line-height:1.4; }.pitch-slide div > p:last-child { margin-top:25px; font-size:22px; line-height:1.7; max-width:650px; }.pitch-shell > nav { display:flex; align-items:center; flex-wrap:wrap; justify-content:center; gap:20px; padding:20px 0; border-top:1px solid #d4dfc9; }.pitch-notes { padding:22px; background:#e9f0df; border-radius:16px; font-size:15px; line-height:1.8; margin-top:15px; }
+@media (max-width:680px) { .pitch-shell { padding:20px; }.pitch-slide { grid-template-columns:1fr; gap:15px; padding:30px 0; }.pitch-slide h1 { font-size:35px; }.pitch-slide h2 { font-size:23px; }.pitch-slide div > p:last-child { font-size:18px; }.pitch-slide > .lulo-avatar { width:150px !important; margin:auto; } }
+.learner-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin: 18px 0;
+}
+.learner-toolbar label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  font-weight: 800;
+}
+.learner-toolbar select {
+  min-height: 56px;
+  max-width: 230px;
+  border: 1px solid #b7c9ac;
+  background: #fffffb;
+  border-radius: 13px;
+  padding: 10px 14px;
+}
+.learner-toolbar > .secondary-button {
+  margin-left: auto;
+}
+.account-message {
+  border-left: 3px solid #86a66b;
+  padding: 10px 14px;
+  background: #edf3e6;
+  border-radius: 0 12px 12px 0;
+  font-size: 13px;
+  line-height: 1.6;
+}
+.lesson-photo {
+  margin: 20px 0;
+}
+.lesson-photo-frame {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 260px;
+  overflow: hidden;
+  border: 2px solid #c7d4bc;
+  border-radius: 18px;
+  background: #edf1e3;
+}
+.lesson-resolved-image {
+  display: block;
+  max-width: 100%;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  opacity: 0;
+  transform: translateY(4px);
+  transition:
+    opacity 0.3s,
+    transform 0.3s;
+}
+.lesson-resolved-image[data-loaded="true"] {
+  opacity: 1;
+  transform: none;
+}
+.image-credit {
+  display: block;
+  color: #5b6856;
+  font-size: 11px;
+  line-height: 1.5;
+  margin-top: 7px;
+}
+.parent-insights {
+  margin-top: 18px;
+}
+.insight-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+  margin: 20px 0;
+}
+.profile-insight,
+.comparison-card {
+  padding: 22px;
+  border: 1px solid #c9d8bd;
+  background: #fffffb;
+  border-radius: 20px;
+  min-width: 0;
+}
+.profile-insight h3 {
+  font-size: 26px;
+  font-weight: 800;
+}
+.profile-insight h3 small {
+  font: 600 12px var(--font-sans);
+  margin-left: 8px;
+}
+.profile-stars {
+  font-size: 12px;
+  color: #7d652a;
+  margin: 6px 0 20px;
+}
+.profile-insight h4 {
+  font-size: 13px;
+  font-weight: 900;
+  margin: 18px 0 12px;
+}
+.style-row {
+  display: grid;
+  grid-template-columns: 95px minmax(0, 1fr) 35px;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  margin: 9px 0;
+}
+.style-row progress {
+  margin: 0;
+  height: 10px;
+}
+.style-row > span:last-child {
+  text-align: right;
+}
+.mastery-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 12px;
+  line-height: 1.6;
+  margin: 9px 0;
+}
+.parent-note {
+  margin-top: 18px;
+  background: #f3f0de;
+  padding: 15px;
+  border-radius: 13px;
+  font-size: 13px;
+  line-height: 1.7;
+}
+.parent-note strong {
+  font-weight: 900;
+}
+.parent-note p {
+  margin-top: 8px;
+}
+.comparison-view {
+  margin-top: 24px;
+}
+.comparison-view h3 {
+  font-size: 24px;
+  font-weight: 800;
+}
+.comparison-card h4 {
+  font-weight: 900;
+  color: #3b7149;
+  margin-bottom: 12px;
+}
+.comparison-card > p {
+  margin: 12px 0;
+  line-height: 1.7;
+  font-size: 15px;
+}
+.course-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-top: 22px;
+}
+.course-list > article {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  border: 1px solid #d8e1cc;
+  padding: 20px;
+  border-radius: 17px;
+  background: #f7f9f0;
+}
+.course-list h3 {
+  font-size: 23px;
+  font-weight: 800;
+}
+.course-list p,
+.course-list small {
+  font-size: 12px;
+  line-height: 1.7;
+  color: #65715a;
+}
+.course-list .secondary-button {
+  font-size: 13px;
+}
+.empty-courses {
+  padding: 25px 0;
+  font-size: 15px;
+  color: #5d7152;
+}
+.child-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 110px auto;
+  align-items: end;
+  gap: 15px;
+  padding: 22px;
+  margin-top: 24px;
+  background: #e8eee3;
+  border-radius: 18px;
+}
+.child-form h3 {
+  grid-column: 1/-1;
+  font-size: 24px;
+  font-weight: 800;
+}
+.child-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 800;
+}
+.child-form input,
+.login-card input:not([type="checkbox"]) {
+  width: 100%;
+  min-height: 56px;
+  border: 1px solid #bacaaf;
+  border-radius: 13px;
+  padding: 12px 14px;
+  background: #fffffb;
+}
+.child-form p {
+  grid-column: 1/-1;
+}
+.suggestion-section {
+  margin: 30px 0 40px;
+}
+.suggestion-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 17px;
+}
+.suggestion-card {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  min-width: 0;
+  text-align: left;
+  padding: 22px;
+  border: 1px solid #d0ddc3;
+  border-radius: 19px;
+  background: #edf2e4;
+}
+.suggestion-card strong {
+  font: 800 23px var(--font-display);
+  text-transform: capitalize;
+}
+.suggestion-card span {
+  font-size: 13px;
+  line-height: 1.7;
+  color: #617058;
+}
+.suggestion-card small {
+  font-size: 11px;
+  font-weight: 900;
+  color: #3d7047;
+  margin-top: auto;
+  padding-top: 9px;
+}
+.photo-topic {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 17px;
+  border: 1px dashed #c9d8bd;
+  background: #eef2e8;
+  padding: 25px;
+  border-radius: 20px;
+  margin: 20px 0;
+}
+.photo-topic > div:first-child {
+  flex: 1;
+}
+.photo-topic h3 {
+  font-size: 24px;
+  font-weight: 800;
+}
+.photo-topic p {
+  font-size: 13px;
+  color: #63735a;
+  line-height: 1.7;
+}
+.photo-preview {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 15px;
+  width: 100%;
+}
+.photo-preview img {
+  width: 110px;
+  height: 100px;
+  object-fit: contain;
+  border-radius: 12px;
+  background: #fffffb;
+}
+.photo-preview p {
+  flex: 1;
+  min-width: 180px;
+}
+.photo-preview button {
+  font-size: 13px;
+}
+.tutor-widget {
+  position: fixed;
+  right: max(20px, calc((100vw - 1100px) / 2));
+  bottom: 22px;
+  z-index: 8;
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: end;
+  gap: 12px;
+}
+.tutor-launch {
+  border-radius: 30px;
+  box-shadow: 0 5px 20px #203c3526;
+  font-size: 14px;
+}
+.tutor-chat {
+  width: 360px;
+  max-width: calc(100vw - 32px);
+  border: 2px solid #759567;
+  border-radius: 22px;
+  padding: 15px;
+  background: #fffffb;
+  box-shadow: 0 16px 50px #233c3526;
+}
+.tutor-chat > header {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  border-bottom: 1px solid #e0e7d8;
+  padding-bottom: 10px;
+}
+.tutor-chat header > div {
+  flex: 1;
+}
+.tutor-chat header strong {
+  font-size: 14px;
+}
+.tutor-chat header small {
+  display: block;
+  font-size: 10px;
+  margin-top: 3px;
+  color: #6d7b64;
+}
+.tutor-chat .text-button {
+  font-size: 11px;
+}
+.chat-history {
+  overflow-y: auto;
+  max-height: min(330px, 40vh);
+  min-height: 120px;
+  padding: 15px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.bubble {
+  max-width: 90%;
+  padding: 12px 14px;
+  border-radius: 15px;
+  font-size: 15px;
+  line-height: 1.65;
+}
+.bubble-lulo {
+  align-self: start;
+  background: #eaf2df;
+  border-bottom-left-radius: 3px;
+}
+.bubble-child {
+  align-self: end;
+  background: #f9edce;
+  border-bottom-right-radius: 3px;
+}
+.chat-wait {
+  font-size: 12px;
+  color: #697d5e;
+}
+.tutor-chat form {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px solid #e0e7d8;
+}
+.tutor-chat input {
+  min-height: 56px;
+  min-width: 0;
+  flex: 1;
+  padding: 12px;
+  border: 1px solid #c9d8bd;
+  border-radius: 12px;
+}
+.tutor-chat .secondary-button {
+  font-size: 13px;
+  padding: 12px;
+}
+.tutor-chat > .small-note {
+  margin-top: 10px;
+}
+.login-layout {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 70px;
+  align-items: center;
+  padding: 55px 0;
+}
+.login-welcome {
+  display: flex;
+  flex-direction: column;
+  align-items: start;
+  gap: 20px;
+}
+.login-welcome h1 {
+  font-size: 43px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+.login-welcome > p {
+  line-height: 1.7;
+  font-size: 17px;
+  color: #65735c;
+}
+.login-welcome .lulo-avatar {
+  margin: auto;
+}
+.login-card {
+  padding: 32px;
+  border: 1px solid #d2ddc7;
+  border-radius: 25px;
+  background: #fffffb;
+}
+.login-card h2 {
+  font-size: 30px;
+  font-weight: 800;
+}
+.login-card > p {
+  margin: 12px 0 22px;
+  font-size: 14px;
+  line-height: 1.7;
+  color: #68765d;
+}
+.login-card form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.login-card label {
+  font-size: 13px;
+  font-weight: 800;
+}
+.password-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+}
+.password-toggle input {
+  width: 20px;
+  height: 20px;
+  accent-color: #3d7548;
+}
+.login-message {
+  padding: 12px 0;
+}
+.login-card .support-note {
+  flex-direction: column;
+}
+@media (max-width: 680px) {
+  .learner-toolbar {
+    gap: 10px;
+  }
+  .learner-toolbar label {
+    flex: 1;
+    font-size: 11px;
+    flex-wrap: wrap;
+  }
+  .learner-toolbar select {
+    max-width: 180px;
+    font-size: 12px;
+  }
+  .learner-toolbar .secondary-button {
+    font-size: 12px;
+    padding: 12px;
+  }
+  .insight-grid,
+  .suggestion-grid,
+  .login-layout {
+    grid-template-columns: 1fr;
+  }
+  .profile-insight,
+  .comparison-card {
+    padding: 17px;
+  }
+  .style-row {
+    grid-template-columns: 90px minmax(0, 1fr) 32px;
+    font-size: 10px;
+  }
+  .child-form {
+    grid-template-columns: 1fr 90px;
+    padding: 17px;
+  }
+  .child-form > button {
+    grid-column: 1/-1;
+  }
+  .course-list > article {
+    flex-direction: column;
+    align-items: start;
+  }
+  .course-list .secondary-button {
+    width: 100%;
+  }
+  .lesson-photo-frame {
+    height: 210px;
+  }
+  .photo-topic {
+    padding: 20px;
+  }
+  .photo-topic > button {
+    width: 100%;
+  }
+  .photo-preview p {
+    min-width: 160px;
+  }
+  .photo-preview .primary-button {
+    width: 100%;
+  }
+  .suggestion-card {
+    padding: 20px;
+  }
+  .tutor-widget {
+    right: 16px;
+    bottom: 16px;
+  }
+  .tutor-launch {
+    font-size: 12px;
+    min-height: 50px;
+  }
+  .tutor-chat {
+    width: calc(100vw - 32px);
+  }
+  .login-layout {
+    padding: 30px 0;
+    gap: 25px;
+  }
+  .login-welcome h1 {
+    font-size: 32px;
+  }
+  .login-welcome .lulo-avatar {
+    width: 150px !important;
+  }
+  .login-card {
+    padding: 22px;
+  }
+  .login-card h2 {
+    font-size: 27px;
+  }
+  .app-footer > div {
+    flex-wrap: wrap;
+  }
+}

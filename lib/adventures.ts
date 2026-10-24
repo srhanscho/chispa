@@ -1,4 +1,4 @@
-import dinosaurs from "../docs/lulo/demo/lesson_dinosaurios.json";
+import dinosaurs from "../public/demo/lessons/dinosaurios__story__explorer.json";
 import planets from "../public/demo/planetas.json";
 import ocean from "../public/demo/oceano.json";
 import { LessonSchema, type Lesson } from "./schema";
@@ -22,12 +22,14 @@ export const adventures: Adventure[] = [
     description: "Sigue las pistas de un mundo gigante.",
     minutes: 5,
     lesson: LessonSchema.parse(dinosaurs),
-    explanations: dinosaurs.quiz.map((question) => question.reexplain),
+    explanations: dinosaurs.quiz.map(
+      (question) =>
+        `La respuesta es ${question.options[question.answerIndex]}. ${question.hint}`,
+    ),
     support: [
       "Imagina que retrocedemos en el tiempo, mucho antes de que hubiera personas. Allí vivían dinosaurios grandes y pequeños.",
-      "Vamos por partes: T-Rex es el nombre de un dinosaurio. Era grande, tenía dientes afilados y vivió en América del Norte.",
       "Piensa en sus dientes como herramientas para comer. Los del T-Rex le ayudaban a comer carne.",
-      "Imagina dos platos: uno con plantas y otro con carne. Distintos dinosaurios necesitaban distintos alimentos.",
+      "Mira la diferencia entre sus patas y sus brazos. Los brazos eran mucho más cortos.",
       "Un fósil es una pista del pasado. Los científicos reúnen esas pistas como piezas de un rompecabezas.",
     ],
     mission:

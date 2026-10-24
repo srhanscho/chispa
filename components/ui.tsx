@@ -4,6 +4,7 @@ import { useEffect, useState, type ButtonHTMLAttributes } from "react";
 import type { ImageRequest } from "@/lib/schema";
 import type { ImageResult } from "@/lib/commons";
 import { LuloAvatar } from "./LuloAvatar";
+import bundledImages from "@/public/demo/images.json";
 
 type Tone = "iguana" | "sea" | "mango" | "coral" | "plain";
 
@@ -28,9 +29,17 @@ export function Button({
   );
 }
 
-export function Card({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+export function Card({
+  children,
+  className = "",
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
   return (
-    <div className={`rounded-3xl border-4 border-ink bg-white p-5 shadow-[0_6px_0_#1F2A44] ${className}`}>
+    <div
+      className={`rounded-3xl border-4 border-ink bg-white p-5 shadow-[0_6px_0_#1F2A44] ${className}`}
+    >
       {children}
     </div>
   );
@@ -48,25 +57,64 @@ function readImageCache(): Record<string, ImageResult> {
 }
 
 // Only rendered on the client after a lesson loads; give it a `key` per request so it remounts.
-export function LessonImage({ request, alt }: { request: ImageRequest; alt: string }) {
+export function LessonImage({
+  request,
+  alt,
+  onResolved,
+}: {
+  request: ImageRequest;
+  alt: string;
+  onResolved?: (image: ImageResult) => void;
+}) {
   const key = `${request.kind}:${request.query}`;
-  const [image, setImage] = useState<ImageResult | null>(() => readImageCache()[key] ?? null);
+  const [image, setImage] = useState<ImageResult | null>(
+    () => readImageCache()[key] ?? null,
+  );
+  const [loaded, setLoaded] = useState(false);
+  useEffect(() => {
+    if (image) onResolved?.(image);
+  }, [image, onResolved]);
 
   useEffect(() => {
     if (image) return;
     let cancelled = false;
-    fetch("/api/image", { method: "POST", body: JSON.stringify(request), signal: AbortSignal.timeout(60000) })
+    const bundled = (
+      bundledImages as Record<
+        string,
+        { url: string; credit?: string; pageUrl?: string }
+      >
+    )[`${request.kind}:${request.query.toLowerCase().trim()}`];
+    if (bundled) {
+      // Bundled photos keep their original credits even without an API connection.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setImage({ ...bundled, source: bundled.credit ? "wikimedia" : "mascot" });
+      return;
+    }
+    fetch("/api/image", {
+      method: "POST",
+      body: JSON.stringify(request),
+      signal: AbortSignal.timeout(60000),
+    })
       .then((res) => (res.ok ? (res.json() as Promise<ImageResult>) : null))
       .catch(() => null)
       .then((maybe) => {
         // Never leave the card stuck on the loading Lulo: show the fallback if the server failed.
-        const result = maybe ?? { url: "/lulo.svg", source: "fallback" as const };
+        const result =
+          maybe && maybe.source !== "fallback"
+            ? maybe
+            : {
+                url: "/assets/lulo/lulo_referencia_original.png",
+                source: "fallback" as const,
+              };
         if (cancelled) return;
         setImage(result);
         // Data URLs are large; only remote URLs go to localStorage.
         if (!result.url.startsWith("data:") && result.source !== "fallback") {
           try {
-            localStorage.setItem(IMAGE_CACHE, JSON.stringify({ ...readImageCache(), [key]: result }));
+            localStorage.setItem(
+              IMAGE_CACHE,
+              JSON.stringify({ ...readImageCache(), [key]: result }),
+            );
           } catch {
             // Storage full or blocked; skip caching.
           }
@@ -79,19 +127,39 @@ export function LessonImage({ request, alt }: { request: ImageRequest; alt: stri
   }, [key]);
 
   return (
-    <figure className="flex flex-col items-center gap-1">
-      <div className="flex aspect-square w-full max-w-xs items-center justify-center overflow-hidden rounded-2xl border-4 border-ink bg-sand">
+    <figure className="lesson-photo">
+      <div className="lesson-photo-frame">
         {image ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={image.url} alt={alt} className="h-full w-full object-cover" />
+          <img
+            src={image.url}
+            alt={alt}
+            data-loaded={loaded}
+            onLoad={() => setLoaded(true)}
+            onError={() => {
+              if (image.source !== "fallback") {
+                setLoaded(false);
+                setImage({
+                  url: "/assets/lulo/lulo_referencia_original.png",
+                  source: "fallback",
+                });
+              } else setLoaded(true);
+            }}
+            className="lesson-resolved-image"
+          />
         ) : (
           <LuloAvatar size={72} scene="loading" />
         )}
       </div>
       {image?.credit && (
-        <figcaption className="text-xs text-ink/60">
+        <figcaption className="image-credit">
           {image.pageUrl ? (
-            <a href={image.pageUrl} target="_blank" rel="noreferrer" className="underline">
+            <a
+              href={image.pageUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="underline"
+            >
               {image.credit}
             </a>
           ) : (
