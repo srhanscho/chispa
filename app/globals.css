@@ -3445,3 +3445,85 @@ h2 {
 .greeting-card:has(.lulo-greeter[data-state="intro"]) .greeting-bubble {
   opacity: 0;
 }
+
+/* Tutor button: Lulo's face in a round button with a small "?" badge, instead of a text pill. */
+.tutor-launch {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 76px;
+  height: 76px;
+  min-height: 0;
+  padding: 0;
+  border: var(--outline);
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 40%, #fff4d9 0%, #ffc21a 100%);
+  box-shadow: var(--drop);
+  overflow: visible;
+  cursor: pointer;
+}
+.tutor-launch:hover {
+  background: radial-gradient(circle at 50% 40%, #fff4d9 0%, #ffd34d 100%);
+}
+.tutor-launch[aria-expanded="true"] {
+  background: radial-gradient(circle at 50% 40%, #fff4d9 0%, #1fcb4f 100%);
+}
+.tutor-face {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  overflow: hidden;
+}
+.tutor-face .lulo-avatar {
+  margin-top: 6px;
+}
+.tutor-ping {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 3px solid var(--ink);
+  border-radius: 50%;
+  background: var(--sea);
+  color: var(--ink);
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-weight: 800;
+  font-size: 16px;
+  line-height: 1;
+}
+@keyframes lulo-nudge {
+  0%,
+  86%,
+  100% {
+    transform: rotate(0deg);
+  }
+  90% {
+    transform: rotate(-10deg);
+  }
+  95% {
+    transform: rotate(8deg);
+  }
+}
+.tutor-launch[aria-expanded="false"] .tutor-face {
+  animation: lulo-nudge 4s ease-in-out infinite;
+}
+
+@media (max-width: 640px) {
+  /* During a lesson, leave room under the card so the floating face never covers "Siguiente". */
+  .app-shell[data-mode="focus"] {
+    padding-bottom: 120px;
+  }
+  .tutor-launch {
+    width: 68px;
+    height: 68px;
+  }
+  .tutor-face {
+    width: 56px;
+    height: 56px;
+  }
+}
