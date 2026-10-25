@@ -93,9 +93,11 @@ export function TutorChat({
   return (
     <div className="tutor-widget">
       <button
-        className="primary-button tutor-launch"
+        className="tutor-launch"
         aria-expanded={open}
         aria-controls="tutor-chat"
+        aria-label={open ? "Cerrar el chat con Lulo" : "Pregúntale a Lulo"}
+        title="Pregúntale a Lulo"
         onClick={() => {
           setMic(canListen());
           visible.current = !open;
@@ -106,7 +108,11 @@ export function TutorChat({
           }
         }}
       >
-        Pregúntale a Lulo
+        {/* Lulo's face instead of a text label: smaller, and recognizable for kids who don't read yet. */}
+        <span className="tutor-face" aria-hidden="true">
+          <LuloAvatar size={58} />
+        </span>
+        <span className="tutor-ping" aria-hidden="true">?</span>
       </button>
       {open && (
         <section
